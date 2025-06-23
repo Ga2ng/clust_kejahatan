@@ -21,7 +21,7 @@
             </div>
             
             <div class="p-8">
-                <form action="{{ route('clustering.cluster') }}" method="POST" class="space-y-6">
+                <form action="{{ route('clustering.cluster') }}" method="POST" class="space-y-6" id="clusteringForm">
                     @csrf
                     
                     <!-- Tahun Selection -->
@@ -73,8 +73,8 @@
                                 </label>
                                 <p class="mt-2 text-sm text-purple-700 leading-relaxed">
                                     Jika diaktifkan, algoritma akan berhenti secara otomatis ketika mencapai konvergensi 
-                                    (perubahan centroid < 0.001), bahkan jika belum mencapai iterasi maksimal. 
-                                    Ini menghemat waktu komputasi dan mencegah iterasi yang tidak perlu.
+                                    (assignment tidak berubah dan perubahan centroid < 0.5), bahkan jika belum mencapai iterasi maksimal. 
+                                    Ini menghemat waktu komputasi dan sesuai dengan konsep K-Means yang benar.
                                 </p>
                                 <div class="mt-3 flex items-center space-x-4 text-xs text-purple-600">
                                     <span class="flex items-center">
@@ -94,6 +94,41 @@
                         </div>
                     </div> --}}
 
+                    <!-- Debug Mode Option -->
+                    {{-- <div class="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-xl p-6">
+                        <div class="flex items-start space-x-4">
+                            <div class="flex items-center h-6">
+                                <input type="checkbox" name="debug_mode" id="debug_mode" 
+                                       class="h-5 w-5 text-orange-600 focus:ring-orange-500 border-gray-300 rounded transition duration-200">
+                            </div>
+                            <div class="flex-1">
+                                <label for="debug_mode" class="text-lg font-semibold text-orange-800 cursor-pointer">
+                                    <i class="fas fa-bug mr-2 text-orange-600"></i>
+                                    Mode Debug - Tampilkan Detail Algoritma
+                                </label>
+                                <p class="mt-2 text-sm text-orange-700 leading-relaxed">
+                                    Jika diaktifkan, akan menampilkan informasi detail tentang proses K-Means:
+                                    pemilihan centroid awal, evolusi centroid antar iterasi, dan perubahan assignment.
+                                    Berguna untuk memahami bagaimana algoritma bekerja dan memverifikasi perhitungan.
+                                </p>
+                                <div class="mt-3 flex items-center space-x-4 text-xs text-orange-600">
+                                    <span class="flex items-center">
+                                        <i class="fas fa-microscope mr-1"></i>
+                                        Analisis mendalam
+                                    </span>
+                                    <span class="flex items-center">
+                                        <i class="fas fa-search mr-1"></i>
+                                        Verifikasi algoritma
+                                    </span>
+                                    <span class="flex items-center">
+                                        <i class="fas fa-graduation-cap mr-1"></i>
+                                        Edukasi
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div> --}}
+
                     <!-- Info Box -->
                     <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
                         <div class="flex">
@@ -101,13 +136,15 @@
                                 <i class="fas fa-info-circle text-blue-400"></i>
                             </div>
                             <div class="ml-3">
-                                <h3 class="text-sm font-medium text-blue-800">Informasi Clustering</h3>
+                                <h3 class="text-sm font-medium text-blue-800">Informasi Algoritma K-Means</h3>
                                 <div class="mt-2 text-sm text-blue-700">
                                     <ul class="list-disc pl-5 space-y-1">
                                         <li><strong>Cluster 1 (Tinggi):</strong> Data dengan nilai kejahatan tinggi</li>
                                         <li><strong>Cluster 2 (Sedang):</strong> Data dengan nilai kejahatan sedang</li>
                                         <li><strong>Cluster 3 (Rendah):</strong> Data dengan nilai kejahatan rendah</li>
                                         <li><strong>Fitur:</strong> Curas, Curat, Curanmor, Anirat, Judi</li>
+                                        <li><strong>Proses Iteratif:</strong> Assignment cluster akan berubah antar iterasi sampai konvergen</li>
+                                        <li><strong>Konvergensi:</strong> Tercapai ketika assignment stabil dan centroid minimal berubah</li>
                                     </ul>
                                 </div>
                             </div>
@@ -159,27 +196,26 @@
 </div>
 
 <script>
-    // Add form validation
-    document.querySelector('form').addEventListener('submit', function(e) {
-        const tahun = document.getElementById('tahun').value;
-        const iterasi = document.getElementById('iterasi').value;
+    // Simple loading state only - no validation
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+        const submitButton = form.querySelector('button[type="submit"]');
         
-        if (!tahun) {
-            e.preventDefault();
-            alert('Silakan pilih tahun terlebih dahulu!');
-            return;
-        }
-        
-        if (!iterasi || iterasi < 1) {
-            e.preventDefault();
-            alert('Jumlah iterasi harus minimal 1!');
-            return;
-        }
-        
-        // Show loading state
-        const button = e.target.querySelector('button[type="submit"]');
-        button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Memproses...';
-        button.disabled = true;
+        form.addEventListener('submit', function(e) {
+            console.log('Form submit triggered');
+            
+            // Just show loading state, let HTML5 and Laravel handle validation
+            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Memproses...';
+            submitButton.disabled = true;
+            
+            // Re-enable button after 5 seconds in case of error
+            setTimeout(function() {
+                if (submitButton.disabled) {
+                    submitButton.innerHTML = '<i class="fas fa-play mr-2"></i>Mulai Clustering';
+                    submitButton.disabled = false;
+                }
+            }, 5000);
+        });
     });
 </script>
 </x-app-layout>

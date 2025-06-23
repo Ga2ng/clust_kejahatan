@@ -25,6 +25,191 @@
                       Data Lengkap Kejahatan Tahun test {{ $data12bulan[0]['tahun'] }}
                   </h2>
               </div>
+
+          <!-- Debug Panel (hanya untuk tahun 2020) -->
+          @if(isset($debug_info) && $debug_info)
+          <div class="bg-white rounded-xl shadow-lg mb-8">
+              <div class="p-6 border-b border-gray-200">
+                  <h2 class="text-2xl font-bold text-gray-900">
+                      <i class="fas fa-bug mr-2 text-red-600"></i>
+                      Debug Information - K-Means Analysis
+                  </h2>
+                  <p class="text-sm text-gray-600 mt-2">
+                      Informasi debug untuk memverifikasi algoritma K-Means bekerja dengan benar
+                  </p>
+              </div>
+              <div class="p-6">
+                  <!-- Data Totals -->
+                  <div class="mb-6">
+                      <h3 class="text-lg font-semibold text-gray-800 mb-3">
+                          <i class="fas fa-sort-numeric-down mr-2 text-blue-600"></i>
+                          Data Diurutkan Berdasarkan Total
+                      </h3>
+                      <div class="overflow-x-auto">
+                          <table class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
+                              <thead class="bg-gray-50">
+                                  <tr>
+                                      <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Index</th>
+                                      <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bulan</th>
+                                      <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Data</th>
+                                      <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Total</th>
+                                      <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Keterangan</th>
+                                  </tr>
+                              </thead>
+                              <tbody class="divide-y divide-gray-200">
+                                  @php
+                                      $sortedData = $debug_info['data_totals'];
+                                      usort($sortedData, function($a, $b) { return $b['total'] <=> $a['total']; });
+                                  @endphp
+                                  @foreach($sortedData as $index => $item)
+                                      @php
+                                          $bgClass = '';
+                                          $note = '';
+                                          if ($index == 0) {
+                                              $bgClass = 'bg-red-50';
+                                              $note = 'Centroid C1 (Tinggi)';
+                                          } elseif ($index == count($sortedData) - 1) {
+                                              $bgClass = 'bg-green-50';
+                                              $note = 'Centroid C3 (Rendah)';
+                                          } elseif ($index == floor(count($sortedData) / 2)) {
+                                              $bgClass = 'bg-yellow-50';
+                                              $note = 'Centroid C2 (Sedang)';
+                                          }
+                                      @endphp
+                                      <tr class="{{ $bgClass }}">
+                                          <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ $item['index'] }}</td>
+                                          <td class="px-4 py-3 text-sm text-gray-700">{{ $item['month'] }}</td>
+                                          <td class="px-4 py-3 text-sm text-center text-gray-700">
+                                              [{{ implode(', ', $item['data']) }}]
+                                          </td>
+                                          <td class="px-4 py-3 text-sm text-center font-bold text-gray-900">{{ $item['total'] }}</td>
+                                          <td class="px-4 py-3 text-sm text-center text-gray-600">{{ $note }}</td>
+                                      </tr>
+                                  @endforeach
+                              </tbody>
+                          </table>
+                      </div>
+                  </div>
+
+                  <!-- Centroid Evolution -->
+                  <div class="mb-6">
+                      <h3 class="text-lg font-semibold text-gray-800 mb-3">
+                          <i class="fas fa-chart-line mr-2 text-purple-600"></i>
+                          Evolusi Centroid Antar Iterasi
+                      </h3>
+                      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                          @foreach($debug_info['centroid_evolution'] as $evolution)
+                              <div class="bg-gray-50 rounded-lg p-4">
+                                  <h4 class="font-semibold text-gray-800 mb-3">Iterasi {{ $evolution['iteration'] }}</h4>
+                                  <div class="space-y-2">
+                                      @foreach(['C1 (Tinggi)', 'C2 (Sedang)', 'C3 (Rendah)'] as $index => $label)
+                                          @php
+                                              $centroid = $evolution['centroids'][$index] ?? [];
+                                              $count = $evolution['cluster_counts'][$index + 1] ?? 0;
+                                              $colors = ['text-red-700', 'text-yellow-700', 'text-green-700'];
+                                          @endphp
+                                          <div class="text-sm {{ $colors[$index] }}">
+                                              <div class="font-medium">{{ $label }}: {{ $count }} data</div>
+                                              <div class="text-xs">
+                                                  [{{ implode(', ', array_map(function($v) { return number_format($v, 1); }, $centroid)) }}]
+                                              </div>
+                                          </div>
+                                      @endforeach
+                                  </div>
+                              </div>
+                          @endforeach
+                      </div>
+                  </div>
+
+                  <!-- Assignment Changes -->
+                  <div class="mb-6">
+                      <h3 class="text-lg font-semibold text-gray-800 mb-3">
+                          <i class="fas fa-exchange-alt mr-2 text-orange-600"></i>
+                          Perubahan Assignment Antar Iterasi
+                      </h3>
+                      
+                      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+                          @foreach($debug_info['centroid_evolution'] as $evolution)
+                              @if($evolution['iteration'] > 1)
+                              <div class="bg-gray-50 rounded-lg p-4">
+                                  <h4 class="font-semibold text-gray-800 mb-2">
+                                      Iterasi {{ $evolution['iteration'] - 1 }} → {{ $evolution['iteration'] }}
+                                  </h4>
+                                  <div class="text-sm">
+                                      @if(isset($evolution['assignment_changed']))
+                                          @if($evolution['assignment_changed'])
+                                              <div class="flex items-center text-green-700 mb-2">
+                                                  <i class="fas fa-check-circle mr-2"></i>
+                                                  <span class="font-medium">Assignment Berubah</span>
+                                              </div>
+                                              <p class="text-green-600 text-xs">
+                                                  Ada data yang berpindah cluster - algoritma berjalan dengan benar
+                                              </p>
+                                          @else
+                                              <div class="flex items-center text-red-700 mb-2">
+                                                  <i class="fas fa-times-circle mr-2"></i>
+                                                  <span class="font-medium">Assignment Tidak Berubah</span>
+                                              </div>
+                                              <p class="text-red-600 text-xs">
+                                                  Tidak ada data yang berpindah cluster - kemungkinan sudah konvergen
+                                              </p>
+                                          @endif
+                                      @endif
+                                      
+                                      @if(isset($evolution['centroid_change']))
+                                          <div class="mt-2">
+                                              <span class="text-gray-600 text-xs">
+                                                  Perubahan Centroid: <strong>{{ $evolution['centroid_change'] }}</strong>
+                                              </span>
+                                          </div>
+                                      @endif
+                                  </div>
+                              </div>
+                              @endif
+                          @endforeach
+                      </div>
+                      
+                      <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                          <p class="text-sm text-yellow-800">
+                              <i class="fas fa-info-circle mr-1"></i>
+                              <strong>Prinsip K-Means yang Benar:</strong> Assignment data ke cluster harus berubah antar iterasi 
+                              sampai mencapai konvergensi. Jika assignment tidak pernah berubah sejak iterasi awal, 
+                              kemungkinan ada masalah dalam algoritma atau data sudah sangat terstruktur.
+                          </p>
+                      </div>
+                      
+                      @if(isset($debug_info['algorithm_notes']))
+                      <div class="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                          <h4 class="font-semibold text-blue-800 mb-2">Ringkasan Algoritma</h4>
+                          <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 text-sm text-blue-700">
+                              <div>
+                                  <span class="font-medium">Total Data:</span> 
+                                  {{ $debug_info['algorithm_notes']['total_data_points'] }}
+                              </div>
+                              <div>
+                                  <span class="font-medium">Fitur per Data:</span> 
+                                  {{ $debug_info['algorithm_notes']['features_per_point'] }}
+                              </div>
+                              <div>
+                                  <span class="font-medium">Jumlah Cluster:</span> 
+                                  {{ $debug_info['algorithm_notes']['clusters_used'] }}
+                              </div>
+                              <div>
+                                  <span class="font-medium">Konvergensi:</span> 
+                                  {{ $debug_info['algorithm_notes']['convergence_achieved'] ? 'Ya' : 'Tidak' }}
+                              </div>
+                              <div>
+                                  <span class="font-medium">Iterasi Dibutuhkan:</span> 
+                                  {{ $debug_info['algorithm_notes']['iterations_needed'] }}
+                              </div>
+                          </div>
+                      </div>
+                      @endif
+                  </div>
+              </div>
+          </div>
+          @endif
+
             <!-- Tabel Data Lengkap -->
             <div class="mb-4">
               <div class="overflow-x-auto">
@@ -279,16 +464,101 @@
                           </button>
                           
                           <div class="mt-4 hidden" id="iteration-{{ $index }}">
+                              <!-- Debug Information -->
+                              @if(isset($iteration['debug_info']))
+                              <div class="mb-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded">
+                                  <h4 class="font-semibold text-blue-800 mb-2">
+                                      <i class="fas fa-bug mr-2"></i>
+                                      Debug Information - Iterasi {{ $iteration['iteration'] }}
+                                  </h4>
+                                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                      <div>
+                                          <h5 class="font-medium text-blue-700 mb-1">Jumlah Data per Cluster:</h5>
+                                          <ul class="text-blue-600">
+                                              <li>• C1: {{ $iteration['debug_info']['cluster_counts'][1] }} data ({{ $iteration['cluster_labels'][1] ?? 'Label' }})</li>
+                                              <li>• C2: {{ $iteration['debug_info']['cluster_counts'][2] }} data ({{ $iteration['cluster_labels'][2] ?? 'Label' }})</li>
+                                              <li>• C3: {{ $iteration['debug_info']['cluster_counts'][3] }} data ({{ $iteration['cluster_labels'][3] ?? 'Label' }})</li>
+                                          </ul>
+                                          
+                                          <h5 class="font-medium text-blue-700 mb-1 mt-3">Total Centroid:</h5>
+                                          <ul class="text-blue-600">
+                                              <li>• C1: {{ $iteration['debug_info']['centroid_totals'][1] }}</li>
+                                              <li>• C2: {{ $iteration['debug_info']['centroid_totals'][2] }}</li>
+                                              <li>• C3: {{ $iteration['debug_info']['centroid_totals'][3] }}</li>
+                                          </ul>
+                                      </div>
+                                      <div>
+                                          @if(isset($iteration['debug_info']['centroid_change']))
+                                          <h5 class="font-medium text-blue-700 mb-1">Perubahan:</h5>
+                                          <p class="text-blue-600">
+                                              Centroid: <strong>{{ $iteration['debug_info']['centroid_change'] }}</strong>
+                                              @if($iteration['debug_info']['centroid_change'] > 0)
+                                                  <span class="text-green-600">✓</span>
+                                              @else
+                                                  <span class="text-red-600">✗</span>
+                                              @endif
+                                          </p>
+                                          @endif
+                                          @if(isset($iteration['debug_info']['assignment_changed']))
+                                          <p class="text-blue-600">
+                                              Assignment: 
+                                              @if($iteration['debug_info']['assignment_changed'])
+                                                  <span class="text-green-600 font-semibold">Berubah ✓</span>
+                                              @else
+                                                  <span class="text-red-600 font-semibold">Tidak Berubah ✗</span>
+                                              @endif
+                                          </p>
+                                          @endif
+                                          
+                                          @if(isset($iteration['debug_info']['centroid_values']))
+                                          <h5 class="font-medium text-blue-700 mb-1 mt-3">Nilai Centroid Detail:</h5>
+                                          <div class="text-xs text-blue-600">
+                                              <div>C1: [{{ implode(', ', array_map(function($v) { return number_format($v, 1); }, $iteration['debug_info']['centroid_values'][1])) }}]</div>
+                                              <div>C2: [{{ implode(', ', array_map(function($v) { return number_format($v, 1); }, $iteration['debug_info']['centroid_values'][2])) }}]</div>
+                                              <div>C3: [{{ implode(', ', array_map(function($v) { return number_format($v, 1); }, $iteration['debug_info']['centroid_values'][3])) }}]</div>
+                                          </div>
+                                          @endif
+                                      </div>
+                                  </div>
+                                  
+                                  @if(isset($iteration['debug_info']['assignment_changed']) && !$iteration['debug_info']['assignment_changed'] && $iteration['iteration'] > 1)
+                                  <div class="mt-3 p-3 bg-yellow-100 border border-yellow-300 rounded">
+                                      <p class="text-yellow-800 text-sm">
+                                          <i class="fas fa-exclamation-triangle mr-1"></i>
+                                          <strong>Peringatan:</strong> Assignment tidak berubah dari iterasi sebelumnya. 
+                                          Algoritma mungkin sudah konvergen atau perlu diperiksa.
+                                      </p>
+                                  </div>
+                                  @endif
+                              </div>
+                              @endif
+
                               @if($iteration['is_first_iteration'])
                                   <!-- Penjelasan Iterasi Pertama -->
                                   <div class="mb-4 p-4 bg-orange-50 border-l-4 border-orange-500 rounded">
                                       <h4 class="font-semibold text-orange-800 mb-2">
                                           <i class="fas fa-star mr-2"></i>
-                                          Iterasi Pertama - Inisialisasi Centroid
+                                          Iterasi Pertama - Inisialisasi Centroid dari Data Aktual
                                       </h4>
-                                      <p class="text-sm text-orange-700">
-                                          Pada iterasi pertama, centroid diinisialisasi menggunakan 3 data aktual dengan total kejahatan tertinggi. 
-                                          Metode ini memberikan titik awal yang representatif berdasarkan data nyata.
+                                      <p class="text-sm text-orange-700 mb-2">
+                                          Menggunakan metode inisialisasi centroid berdasarkan data aktual (seperti dalam gambar referensi):
+                                      </p>
+                                      <ul class="text-sm text-orange-700 space-y-1">
+                                          <li class="flex items-start">
+                                              <i class="fas fa-arrow-right mr-2 mt-1 text-xs"></i>
+                                              <strong>Centroid 1 (Tinggi):</strong> Data dengan total kejahatan tertinggi
+                                          </li>
+                                          <li class="flex items-start">
+                                              <i class="fas fa-arrow-right mr-2 mt-1 text-xs"></i>
+                                              <strong>Centroid 2 (Sedang):</strong> Data dengan total kejahatan sedang/tengah
+                                          </li>
+                                          <li class="flex items-start">
+                                              <i class="fas fa-arrow-right mr-2 mt-1 text-xs"></i>
+                                              <strong>Centroid 3 (Rendah):</strong> Data dengan total kejahatan terendah
+                                          </li>
+                                      </ul>
+                                      <p class="text-sm text-orange-700 mt-2">
+                                          Metode ini memberikan centroid awal yang representatif dan sesuai dengan literatur K-Means.
                                       </p>
                                   </div>
                               @else
@@ -331,13 +601,14 @@
                                   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                                       @foreach([1 => 'Tinggi', 2 => 'Sedang', 3 => 'Rendah'] as $clusterNum => $clusterLabel)
                                           @php
-                                              $clusterData = $final_clusters[$clusterNum] ?? [];
+                                              // Gunakan data dari iterasi saat ini, bukan final_clusters
+                                              $clusterData = $iteration['summary_clusters'][$clusterNum] ?? [];
                                               $borderColor = $clusterNum == 1 ? 'border-red-500' : ($clusterNum == 2 ? 'border-yellow-500' : 'border-green-500');
                                               $bgColor = $clusterNum == 1 ? 'bg-red-50' : ($clusterNum == 2 ? 'bg-yellow-50' : 'bg-green-50');
                                               $textColor = $clusterNum == 1 ? 'text-red-800' : ($clusterNum == 2 ? 'text-yellow-800' : 'text-green-800');
                                               $iconColor = $clusterNum == 1 ? 'text-red-600' : ($clusterNum == 2 ? 'text-yellow-600' : 'text-green-600');
                                               $icon = $clusterNum == 1 ? 'fas fa-exclamation-triangle' : ($clusterNum == 2 ? 'fas fa-minus-circle' : 'fas fa-check-circle');
-                                              $countData = count(array_filter($final_clusters[$clusterNum] ?? [], function($key) { return $key !== 'average'; }, ARRAY_FILTER_USE_KEY));
+                                              $countData = count(array_filter($clusterData, function($key) { return $key !== 'average'; }, ARRAY_FILTER_USE_KEY));
                                           @endphp
                                           
                                           <div class="border-l-4 {{ $borderColor }} {{ $bgColor }} rounded-lg p-6">
