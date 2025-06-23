@@ -22,7 +22,7 @@
               <div class="p-6 border-b border-gray-200">
                   <h2 class="text-2xl font-bold text-gray-900">
                       <i class="fas fa-chart-pie mr-2 text-green-600"></i>
-                      Data Lengkap Kejahatan Tahun {{ $data12bulan[0]['tahun'] }}
+                      Data Lengkap Kejahatan Tahun test {{ $data12bulan[0]['tahun'] }}
                   </h2>
               </div>
             <!-- Tabel Data Lengkap -->
