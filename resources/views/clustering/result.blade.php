@@ -295,7 +295,7 @@
                     </h2>
                 </div>
                 <div class="p-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {{-- <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         <!-- Auto Convergence Status -->
                         <div class="bg-gradient-to-r {{ $convergence_info['auto_converge_enabled'] ? 'from-green-50 to-green-100 border-green-200' : 'from-gray-50 to-gray-100 border-gray-200' }} border rounded-lg p-4">
                             <div class="flex items-center">
@@ -387,6 +387,27 @@
                             </div>
                         </div>
                         @endif
+                    </div> --}}
+
+                    
+                        <!-- Total Iterations -->
+                    <div class="bg-gradient-to-r from-purple-50 to-purple-100 border border-purple-200 rounded-lg p-4">
+                        <div class="flex items-center">
+                            <div class="p-3 bg-white rounded-full shadow-sm">
+                                <i class="fas fa-sync text-purple-600 text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-lg font-semibold text-purple-800">
+                                    Total Iterasi
+                                </h3>
+                                <p class="text-2xl font-bold text-purple-600">
+                                    {{ $convergence_info['total_iterations'] }}
+                                </p>
+                                <p class="text-xs text-purple-500">
+                                    dari {{ $convergence_info['max_iterations_requested'] }} diminta
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Penjelasan Konvergensi -->
