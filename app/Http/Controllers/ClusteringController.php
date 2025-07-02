@@ -60,7 +60,7 @@ class ClusteringController extends Controller
         $fullData = $dataQuery->toArray();
 
         // Inisialisasi centroid seperti Excel - menggunakan data dengan total tertinggi, sedang, terendah
-        $centroids = $this->initializeCentroidsFromDataTotals($data, $debugMode);
+        $initialCentroids = $this->initializeCentroidsFromDataTotals($data, $debugMode);
         
         // Label cluster fix: C1=Tinggi, C2=Sedang, C3=Rendah
         $clusterLabels = [1 => 'Tinggi', 2 => 'Sedang', 3 => 'Rendah'];
@@ -70,130 +70,253 @@ class ClusteringController extends Controller
         $convergenceIteration = null;
         $clusters = [];
         $previousAssignments = [];
+        $centroids = $initialCentroids;
         
-        // ALGORITMA K-MEANS YANG BENAR SESUAI EXCEL
+        // ALGORITMA K-MEANS YANG BENAR - ITERASI 1 HANYA INISIALISASI
         for ($i = 1; $i <= $maxIterasi; $i++) {
             if ($debugMode) {
                 error_log("=== ITERASI $i (Tahun $tahun) ===");
-                error_log("Centroids saat ini: " . json_encode($centroids));
             }
             
-            // STEP 1: Assignment - Hitung jarak dan assign cluster dengan perhitungan yang tepat
-            $clusters = $this->performClusterAssignment($data, $centroids, $debugMode);
-            
-            // Extract current assignments for comparison
-            $currentAssignments = array_map(function($cluster) {
-                return $cluster['cluster'];
-            }, $clusters);
-            
-            // Check assignment changes dengan toleransi yang tepat
-            $assignmentChanged = $this->hasAssignmentChanged($currentAssignments, $previousAssignments);
-            
-            if ($debugMode) {
-                error_log("Assignment changed: " . ($assignmentChanged ? 'YES' : 'NO'));
-                error_log("Current assignments: " . json_encode($currentAssignments));
-                if (!empty($previousAssignments)) {
-                    error_log("Previous assignments: " . json_encode($previousAssignments));
-                    $this->logAssignmentChanges($currentAssignments, $previousAssignments, $months);
+            if ($i == 1) {
+                // ITERASI 1: HANYA INISIALISASI CENTROID
+                if ($debugMode) {
+                    error_log("ITERASI 1: Hanya inisialisasi centroid (tidak ada assignment)");
+                    error_log("Initial centroids: " . json_encode($centroids));
                 }
-            }
-            
-            // Simpan hasil iterasi
-            $clusterCounts = $this->getClusterCounts($clusters);
-            $iterations[] = [
-                'iteration' => $i,
-                'centroids' => $centroids,
-                'cluster_labels' => $clusterLabels,
-                'clusters' => $clusters,
-                'data_with_clusters' => $this->getDataWithClusters($data, $clusters, $centroids, $months),
-                'summary_clusters' => $this->getSummaryClusters($fullData, $clusters, $clusterLabels),
-                'is_first_iteration' => $i === 1,
-                'is_final_iteration' => false,
-                'debug_info' => [
-                    'cluster_counts' => $clusterCounts,
-                    'centroid_totals' => [
-                        1 => round(array_sum($centroids[0]), 2),
-                        2 => round(array_sum($centroids[1]), 2),
-                        3 => round(array_sum($centroids[2]), 2)
-                    ],
-                    'centroid_values' => [
-                        1 => $centroids[0],
-                        2 => $centroids[1], 
-                        3 => $centroids[2]
-                    ],
-                    'assignment_changed' => $assignmentChanged,
-                    'assignments' => $currentAssignments
-                ]
-            ];
-            
-            // STEP 2: Update Centroids (kecuali iterasi terakhir)
-            if ($i < $maxIterasi) {
-                $oldCentroids = $centroids;
-                $newCentroids = $this->calculateNewCentroids($data, $clusters, $debugMode);
                 
-                // Calculate centroid change
-                $centroidChange = $this->calculateCentroidChangeExact($oldCentroids, $newCentroids);
-                $iterations[count($iterations) - 1]['debug_info']['centroid_change'] = $centroidChange;
+                // Simpan iterasi 1 dengan centroid awal saja
+                $iterationData = [
+                    'iteration' => $i,
+                    'centroids' => $centroids,
+                    'cluster_labels' => $clusterLabels,
+                    'clusters' => [], // Tidak ada assignment di iterasi 1
+                    'data_with_clusters' => [], // Tidak ada clustering di iterasi 1
+                    'summary_clusters' => [1 => [], 2 => [], 3 => []], // Kosong di iterasi 1
+                    'is_first_iteration' => true,
+                    'is_final_iteration' => false,
+                    'is_initialization_only' => true, // Flag khusus untuk iterasi 1
+                    'debug_info' => [
+                        'cluster_counts' => [1 => 0, 2 => 0, 3 => 0], // Kosong di iterasi 1
+                        'centroid_totals' => [
+                            1 => round(array_sum($centroids[0]), 2),
+                            2 => round(array_sum($centroids[1]), 2),
+                            3 => round(array_sum($centroids[2]), 2)
+                        ],
+                        'centroid_values' => [
+                            1 => $centroids[0],
+                            2 => $centroids[1], 
+                            3 => $centroids[2]
+                        ],
+                        'assignment_changed' => null, // Tidak ada assignment
+                        'assignments' => [],
+                        'iteration_type' => 'Initial centroids (actual data only)',
+                        'explanation' => 'Iterasi pertama hanya inisialisasi centroid dari data aktual, belum ada pengelompokan'
+                    ]
+                ];
+                
+                $iterations[] = $iterationData;
+                
+            } else {
+                // ITERASI 2+: ASSIGNMENT DAN UPDATE CENTROID
+                if ($debugMode) {
+                    error_log("ITERASI $i: Menggunakan centroid hasil iterasi " . ($i-1));
+                    error_log("Centroids yang digunakan: " . json_encode($centroids));
+                }
+                
+                // STEP 1: Assignment - Hitung jarak ke centroid SAAT INI dan assign cluster
+                $clusters = $this->performClusterAssignment($data, $centroids, $debugMode);
+                
+                // Extract current assignments for comparison
+                $currentAssignments = array_map(function($cluster) {
+                    return $cluster['cluster'];
+                }, $clusters);
+                
+                // Check assignment changes (kecuali iterasi pertama)
+                $assignmentChanged = $this->hasAssignmentChanged($currentAssignments, $previousAssignments);
                 
                 if ($debugMode) {
-                    error_log("Centroid change magnitude: $centroidChange");
-                    error_log("Old centroids: " . json_encode($oldCentroids));
-                    error_log("New centroids: " . json_encode($newCentroids));
+                    error_log("Assignment changed: " . ($assignmentChanged ? 'YES' : 'NO'));
+                    error_log("Current assignments: " . json_encode($currentAssignments));
+                    if (!empty($previousAssignments)) {
+                        error_log("Previous assignments: " . json_encode($previousAssignments));
+                        $this->logAssignmentChanges($currentAssignments, $previousAssignments, $months);
+                    }
+                    
+                    // Debug cluster counts
+                    $clusterCounts = $this->getClusterCounts($clusters);
+                    error_log("Cluster counts untuk iterasi $i: C1=" . $clusterCounts[1] . ", C2=" . $clusterCounts[2] . ", C3=" . $clusterCounts[3]);
                 }
                 
-                // STEP 3: Check Convergence - Lebih realistis untuk data 12x5
-                if ($autoConverge && $i >= 3) { // Mulai cek konvergensi dari iterasi ke-3
-                    // Untuk data 12x5, konvergensi biasanya tercapai setelah beberapa iterasi
-                    // Convergence: Assignment tidak berubah DAN perubahan centroid sangat kecil
-                    $centroidConverged = $centroidChange < 0.001; // Threshold sangat ketat
+                // Simpan hasil iterasi dengan centroid yang DIGUNAKAN (bukan yang akan dihitung)
+                $clusterCounts = $this->getClusterCounts($clusters);
+                $iterationData = [
+                    'iteration' => $i,
+                    'centroids' => $centroids, // Centroid yang DIGUNAKAN untuk iterasi ini
+                    'cluster_labels' => $clusterLabels,
+                    'clusters' => $clusters,
+                    'data_with_clusters' => $this->getDataWithClusters($data, $clusters, $centroids, $months),
+                    'summary_clusters' => $this->getSummaryClusters($fullData, $clusters, $clusterLabels),
+                    'is_first_iteration' => false,
+                    'is_final_iteration' => false,
+                    'is_initialization_only' => false,
+                    'debug_info' => [
+                        'cluster_counts' => $clusterCounts,
+                        'centroid_totals' => [
+                            1 => round(array_sum($centroids[0]), 2),
+                            2 => round(array_sum($centroids[1]), 2),
+                            3 => round(array_sum($centroids[2]), 2)
+                        ],
+                        'centroid_values' => [
+                            1 => $centroids[0],
+                            2 => $centroids[1], 
+                            3 => $centroids[2]
+                        ],
+                        'assignment_changed' => $assignmentChanged,
+                        'assignments' => $currentAssignments,
+                        'iteration_type' => 'Assignment and centroid calculation',
+                        'explanation' => 'Iterasi ini melakukan assignment data ke cluster dan menghitung centroid baru'
+                    ]
+                ];
+                
+                // STEP 2: Hitung centroid BARU untuk iterasi berikutnya (kecuali iterasi terakhir)
+                if ($i < $maxIterasi) {
+                    $oldCentroids = $centroids;
+                    $newCentroids = $this->calculateNewCentroids($data, $clusters, $debugMode);
                     
-                    // Hanya konvergen jika KEDUA kondisi terpenuhi
-                    if (!$assignmentChanged && $centroidConverged) {
-                        $isConverged = true;
-                        $convergenceIteration = $i;
+                    // Calculate centroid change
+                    $centroidChange = $this->calculateCentroidChangeExact($oldCentroids, $newCentroids);
+                    $iterationData['debug_info']['centroid_change'] = $centroidChange;
+                    $iterationData['debug_info']['next_iteration_centroids'] = $newCentroids; // Centroid untuk iterasi berikutnya
+                    
+                    // UPDATE: Ganti centroid yang ditampilkan dengan centroid hasil perhitungan (agar sesuai dengan rata-rata cluster)
+                    $iterationData['centroids'] = $newCentroids; // Centroid HASIL dari iterasi ini (sesuai dengan cluster average)
+                    $iterationData['debug_info']['centroid_values'] = [
+                        1 => $newCentroids[0],
+                        2 => $newCentroids[1], 
+                        3 => $newCentroids[2]
+                    ];
+                    $iterationData['debug_info']['centroid_totals'] = [
+                        1 => round(array_sum($newCentroids[0]), 1),
+                        2 => round(array_sum($newCentroids[1]), 1),
+                        3 => round(array_sum($newCentroids[2]), 1)
+                    ];
+                    
+                    if ($debugMode) {
+                        error_log("Centroid change magnitude: $centroidChange");
+                        error_log("Current centroids (used in this iteration): " . json_encode($oldCentroids));
+                        error_log("New centroids (will be used in next iteration): " . json_encode($newCentroids));
+                        error_log("Displaying new centroids (results of this iteration) to match cluster averages");
+                    }
+                    
+                    // STEP 3: Check Convergence - Hanya jika auto converge enabled dan bukan iterasi kedua
+                    if ($autoConverge && $i >= 3) { // Mulai cek konvergensi dari iterasi ke-3 (karena perlu minimal 2 assignment untuk compare)
+                        // Konvergensi: Assignment tidak berubah DAN perubahan centroid sangat kecil
+                        $centroidConverged = $centroidChange < 0.01; // Threshold yang realistis
                         
-                        if ($debugMode) {
-                            error_log("KONVERGENSI TERCAPAI pada iterasi $i");
-                            error_log("- Assignment tidak berubah: TRUE");
-                            error_log("- Centroid converged (< 0.001): TRUE");
-                            error_log("- Centroid change: $centroidChange");
+                        // Konvergen jika KEDUA kondisi terpenuhi
+                        if (!$assignmentChanged && $centroidConverged) {
+                            $isConverged = true;
+                            $convergenceIteration = $i;
+                            
+                            if ($debugMode) {
+                                error_log("KONVERGENSI TERCAPAI pada iterasi $i");
+                                error_log("- Assignment tidak berubah: TRUE");
+                                error_log("- Centroid converged (< 0.01): TRUE");
+                                error_log("- Centroid change: $centroidChange");
+                            }
+                            
+                            // UPDATE: Pastikan centroid yang ditampilkan pada konvergensi juga hasil perhitungan
+                            $iterationData['centroids'] = $newCentroids; // Centroid HASIL dari iterasi konvergensi
+                            $iterationData['debug_info']['centroid_values'] = [
+                                1 => $newCentroids[0],
+                                2 => $newCentroids[1], 
+                                3 => $newCentroids[2]
+                            ];
+                            $iterationData['debug_info']['centroid_totals'] = [
+                                1 => round(array_sum($newCentroids[0]), 1),
+                                2 => round(array_sum($newCentroids[1]), 1),
+                                3 => round(array_sum($newCentroids[2]), 1)
+                            ];
+                            
+                            // Tandai iterasi terakhir
+                            $iterationData['is_final_iteration'] = true;
+                            $iterationData['convergence_info'] = [
+                                'converged' => true,
+                                'iteration' => $i,
+                                'reason' => 'Assignment stabil DAN perubahan centroid minimal (< 0.01)'
+                            ];
+                            
+                            // Simpan iterasi ini dulu sebelum break
+                            $iterations[] = $iterationData;
+                            break;
+                        } else {
+                            if ($debugMode) {
+                                error_log("Belum konvergen pada iterasi $i:");
+                                error_log("- Assignment berubah: " . ($assignmentChanged ? 'TRUE' : 'FALSE'));
+                                error_log("- Centroid change: $centroidChange (threshold: 0.01)");
+                                error_log("- Centroid converged: " . ($centroidConverged ? 'TRUE' : 'FALSE'));
+                            }
                         }
-                        
-                        // Tandai iterasi terakhir
-                        $iterations[count($iterations) - 1]['is_final_iteration'] = true;
-                        $iterations[count($iterations) - 1]['convergence_info'] = [
-                            'converged' => true,
-                            'iteration' => $i,
-                            'reason' => 'Assignment stabil DAN perubahan centroid minimal (< 0.001)'
-                        ];
-                        
-                        break;
-                    } else {
-                        if ($debugMode) {
-                            error_log("Belum konvergen pada iterasi $i:");
-                            error_log("- Assignment berubah: " . ($assignmentChanged ? 'TRUE' : 'FALSE'));
-                            error_log("- Centroid change: $centroidChange (threshold: 0.001)");
-                            error_log("- Centroid converged: " . ($centroidConverged ? 'TRUE' : 'FALSE'));
+                    }
+                    
+                    // STEP 4: Update centroids untuk iterasi berikutnya
+                    $centroids = $newCentroids;
+                    $previousAssignments = $currentAssignments;
+                    
+                    if ($debugMode) {
+                        error_log("Centroids telah di-update untuk iterasi " . ($i + 1) . ":");
+                        for ($c = 0; $c < count($centroids); $c++) {
+                            error_log("  C" . ($c + 1) . ": [" . implode(', ', $centroids[$c]) . "]");
                         }
+                    }
+                    
+                } else {
+                    // Iterasi terakhir (mencapai batas maksimal)
+                    // Hitung centroid hasil untuk konsistensi tampilan (meskipun tidak akan digunakan lagi)
+                    $finalCentroids = $this->calculateNewCentroids($data, $clusters, $debugMode);
+                    
+                    // UPDATE: Ganti centroid yang ditampilkan dengan centroid hasil perhitungan (agar sesuai dengan rata-rata cluster)
+                    $iterationData['centroids'] = $finalCentroids; // Centroid HASIL dari iterasi terakhir
+                    $iterationData['debug_info']['centroid_values'] = [
+                        1 => $finalCentroids[0],
+                        2 => $finalCentroids[1], 
+                        3 => $finalCentroids[2]
+                    ];
+                    $iterationData['debug_info']['centroid_totals'] = [
+                        1 => round(array_sum($finalCentroids[0]), 1),
+                        2 => round(array_sum($finalCentroids[1]), 1),
+                        3 => round(array_sum($finalCentroids[2]), 1)
+                    ];
+                    
+                    $iterationData['is_final_iteration'] = true;
+                    $iterationData['convergence_info'] = [
+                        'converged' => false,
+                        'iteration' => $i,
+                        'reason' => 'Mencapai iterasi maksimal tanpa konvergensi'
+                    ];
+                    
+                    if ($debugMode) {
+                        error_log("MENCAPAI ITERASI MAKSIMAL ($maxIterasi) tanpa konvergensi");
+                        error_log("Final centroids (results of final iteration): " . json_encode($finalCentroids));
                     }
                 }
                 
-                // Update centroids untuk iterasi berikutnya
-                $centroids = $newCentroids;
-                $previousAssignments = $currentAssignments;
-                
-            } else {
-                // Iterasi terakhir (mencapai batas maksimal)
-                $iterations[count($iterations) - 1]['is_final_iteration'] = true;
-                $iterations[count($iterations) - 1]['convergence_info'] = [
-                    'converged' => false,
-                    'iteration' => $i,
-                    'reason' => 'Mencapai iterasi maksimal tanpa konvergensi'
-                ];
-                
-                if ($debugMode) {
-                    error_log("MENCAPAI ITERASI MAKSIMAL ($maxIterasi) tanpa konvergensi");
-                }
+                // Simpan iterasi data
+                $iterations[] = $iterationData;
+            }
+        }
+
+        // Ambil cluster final dari iterasi terakhir yang memiliki assignment
+        $finalClusters = [];
+        $finalClusterCounts = [1 => 0, 2 => 0, 3 => 0];
+        
+        // Cari iterasi terakhir yang memiliki clustering
+        for ($i = count($iterations) - 1; $i >= 0; $i--) {
+            if (!empty($iterations[$i]['clusters'])) {
+                $finalClusters = $this->getFinalClusters($data, $iterations[$i]['clusters'], $months, $clusterLabels);
+                $finalClusterCounts = $this->getClusterCounts($iterations[$i]['clusters']);
+                break;
             }
         }
 
@@ -204,7 +327,7 @@ class ClusteringController extends Controller
             'data' => $data,
             'fullData' => $fullData,
             'iterations' => $iterations,
-            'final_clusters' => $this->getFinalClusters($data, $clusters, $months, $clusterLabels),
+            'final_clusters' => $finalClusters,
             'final_cluster_labels' => $clusterLabels,
             'convergence_info' => [
                 'auto_converge_enabled' => $autoConverge,
@@ -213,13 +336,13 @@ class ClusteringController extends Controller
                 'total_iterations' => count($iterations),
                 'max_iterations_requested' => $maxIterasi
             ],
-            'highClusterCount' => $clusterCounts[1],
-            'mediumClusterCount' => $clusterCounts[2],
-            'lowClusterCount' => $clusterCounts[3],
+            'highClusterCount' => $finalClusterCounts[1],
+            'mediumClusterCount' => $finalClusterCounts[2],
+            'lowClusterCount' => $finalClusterCounts[3],
             // Debug information fleksibel
             'debug_info' => $debugMode ? [
                 'debug_enabled' => true,
-                'initial_centroids' => $this->initializeCentroidsFromDataTotals($data, false),
+                'initial_centroids' => $initialCentroids,
                 'data_totals' => array_map(function($d, $i) use ($months) {
                     return [
                         'index' => $i + 1,
@@ -235,7 +358,8 @@ class ClusteringController extends Controller
                         'cluster_counts' => $iter['debug_info']['cluster_counts'] ?? [],
                         'assignment_changed' => $iter['debug_info']['assignment_changed'] ?? null,
                         'centroid_change' => $iter['debug_info']['centroid_change'] ?? null,
-                        'assignments' => $iter['debug_info']['assignments'] ?? []
+                        'assignments' => $iter['debug_info']['assignments'] ?? [],
+                        'is_initialization_only' => $iter['is_initialization_only'] ?? false
                     ];
                 }, $iterations),
                 'algorithm_notes' => [
@@ -243,7 +367,8 @@ class ClusteringController extends Controller
                     'features_per_point' => count($data[0]),
                     'clusters_used' => 3,
                     'convergence_achieved' => $isConverged,
-                    'iterations_needed' => count($iterations)
+                    'iterations_needed' => count($iterations),
+                    'algorithm_flow' => 'Iterasi 1: Inisialisasi centroid saja. Iterasi 2+: Assignment dan update centroid.'
                 ]
             ] : null
         ]);
@@ -251,7 +376,7 @@ class ClusteringController extends Controller
 
     private function initializeCentroidsFromDataTotals($data, $debugMode)
     {
-        // STEP 1: Hitung total untuk setiap data point
+        // STEP 1: Hitung total untuk setiap data point dengan index yang benar
         $dataTotals = [];
         foreach ($data as $index => $dataPoint) {
             $total = array_sum($dataPoint);
@@ -274,29 +399,38 @@ class ClusteringController extends Controller
             }
         }
         
-        // STEP 3: Pilih centroid dengan strategi yang lebih baik
+        // STEP 3: Pilih centroid berdasarkan data 2020 yang sesuai gambar manual
+        // Berdasarkan gambar: Data 10 (C1), Data 3 (C2), Data 4 (C3)
         $centroids = [];
         $numData = count($dataTotals);
         
         // Centroid 1 (C1 - Tinggi): Data dengan total TERTINGGI (rank 1)
+        // Oktober = [23, 41, 154, 20, 10] = total 248 (paling tinggi)
         $centroids[0] = $dataTotals[0]['data'];
         
-        // Centroid 3 (C3 - Rendah): Data dengan total TERENDAH (rank terakhir)
-        $centroids[2] = $dataTotals[$numData - 1]['data'];
-        
-        // Centroid 2 (C2 - Sedang): Data dengan total di kuartil kedua atau ketiga
-        // Pilih data yang berada di sekitar 25%-75% dari urutan
-        $midRange = intval($numData * 0.4); // Sekitar 40% dari data (lebih representatif)
+        // Centroid 2 (C2 - Sedang): Data dengan total di kuartil kedua/ketiga
+        // Pilih data yang berada di sekitar 20-30% dari urutan untuk mendapatkan Maret
+        $midRange = intval($numData * 0.4); // Sekitar 40% dari data
         $centroids[1] = $dataTotals[$midRange]['data'];
         
+        // Centroid 3 (C3 - Rendah): Data dengan total TERENDAH (rank terakhir)
+        // April = [19, 17, 38, 9, 2] = total 85 (paling rendah)
+        $centroids[2] = $dataTotals[$numData - 1]['data'];
+        
         if ($debugMode) {
-            error_log("Selected Initial Centroids:");
+            error_log("Selected Initial Centroids (sesuai gambar manual):");
             error_log("C1 (Tinggi) - Rank 1, Data Index " . ($dataTotals[0]['index'] + 1) . ", Total: " . $dataTotals[0]['total']);
             error_log("  Values: [" . implode(', ', $centroids[0]) . "]");
             error_log("C2 (Sedang) - Rank " . ($midRange + 1) . ", Data Index " . ($dataTotals[$midRange]['index'] + 1) . ", Total: " . $dataTotals[$midRange]['total']);
             error_log("  Values: [" . implode(', ', $centroids[1]) . "]");
             error_log("C3 (Rendah) - Rank $numData, Data Index " . ($dataTotals[$numData - 1]['index'] + 1) . ", Total: " . $dataTotals[$numData - 1]['total']);
             error_log("  Values: [" . implode(', ', $centroids[2]) . "]");
+            
+            // Verifikasi bahwa ini sesuai dengan data 2020
+            error_log("Verifikasi untuk data 2020:");
+            error_log("  - C1 harus Oktober (Data 10): [23, 41, 154, 20, 10]");
+            error_log("  - C2 harus Maret (Data 3): [16, 35, 51, 13, 12]");  
+            error_log("  - C3 harus April (Data 4): [19, 17, 38, 9, 2]");
         }
         
         // Return dalam urutan [C1, C2, C3]
@@ -311,6 +445,10 @@ class ClusteringController extends Controller
             error_log("Performing cluster assignment...");
             error_log("Number of data points: " . count($data));
             error_log("Number of centroids: " . count($centroids));
+            error_log("Current centroids:");
+            for ($i = 0; $i < count($centroids); $i++) {
+                error_log("  C" . ($i + 1) . ": [" . implode(', ', $centroids[$i]) . "]");
+            }
         }
         
         foreach ($data as $index => $point) {
@@ -323,11 +461,11 @@ class ClusteringController extends Controller
                 $distance = $this->euclideanDistanceExact($point, $centroids[$c]);
                 $distances[] = $distance;
                 
-                // Track cluster dengan jarak minimum (dengan toleransi untuk tie-breaking)
+                // Track cluster dengan jarak minimum
                 if ($distance < $minDistance) {
                     $minDistance = $distance;
                     $assignedCluster = $c + 1; // Convert to 1-based (C1, C2, C3)
-                } elseif (abs($distance - $minDistance) < 0.0001) {
+                } elseif (abs($distance - $minDistance) < 0.000001) { // Threshold sangat kecil untuk floating point comparison
                     // Tie-breaking: pilih cluster dengan index lebih kecil
                     if (($c + 1) < $assignedCluster) {
                         $assignedCluster = $c + 1;
@@ -337,22 +475,34 @@ class ClusteringController extends Controller
             
             $clusters[] = [
                 'data_index' => $index + 1,
-                'distances' => array_map(function($d) { return round($d, 4); }, $distances),
+                'distances' => array_map(function($d) { return round($d, 6); }, $distances), // Lebih banyak decimal places untuk precision
                 'cluster' => $assignedCluster,
-                'min_distance' => round($minDistance, 4),
+                'min_distance' => round($minDistance, 6),
                 'raw_distances' => $distances // Keep exact distances for debugging
             ];
             
-            if ($debugMode && $index < 5) { // Debug first 5 data points
-                error_log("Data " . ($index + 1) . " [" . implode(', ', $point) . "] assigned to C$assignedCluster");
-                error_log("  Distances: C1=" . round($distances[0], 4) . ", C2=" . round($distances[1], 4) . ", C3=" . round($distances[2], 4));
-                error_log("  Min distance: " . round($minDistance, 4));
+            if ($debugMode && $index < 3) { // Debug first 3 data points untuk tidak terlalu verbose
+                error_log("Data " . ($index + 1) . " [" . implode(', ', $point) . "] (total: " . array_sum($point) . ")");
+                error_log("  Distances to centroids:");
+                for ($c = 0; $c < count($distances); $c++) {
+                    error_log("    C" . ($c + 1) . ": " . round($distances[$c], 6));
+                }
+                error_log("  Assigned to C$assignedCluster (min distance: " . round($minDistance, 6) . ")");
             }
         }
         
         if ($debugMode) {
             $clusterCounts = $this->getClusterCounts($clusters);
             error_log("Cluster assignment results: C1=" . $clusterCounts[1] . ", C2=" . $clusterCounts[2] . ", C3=" . $clusterCounts[3]);
+            
+            // Debug assignment details
+            error_log("Detailed assignment:");
+            foreach ($clusters as $item) {
+                $dataIdx = $item['data_index'];
+                $cluster = $item['cluster'];
+                $distance = $item['min_distance'];
+                error_log("  Data $dataIdx -> C$cluster (distance: $distance)");
+            }
         }
         
         return $clusters;
@@ -365,6 +515,8 @@ class ClusteringController extends Controller
         
         if ($debugMode) {
             error_log("Calculating new centroids...");
+            error_log("Total data points: " . count($data));
+            error_log("Number of features: " . $numFeatures);
         }
         
         // Untuk setiap cluster (1, 2, 3)
@@ -381,39 +533,49 @@ class ClusteringController extends Controller
             
             if ($debugMode) {
                 error_log("Cluster $cluster has " . count($clusterData) . " data points");
-                if (count($clusterData) > 0 && count($clusterData) <= 3) {
+                if (count($clusterData) > 0) {
                     error_log("  Data points in cluster $cluster:");
                     foreach ($clusterData as $idx => $dataPoint) {
-                        error_log("    " . ($idx + 1) . ": [" . implode(', ', $dataPoint) . "]");
+                        error_log("    Point " . ($idx + 1) . ": [" . implode(', ', $dataPoint) . "] (total: " . array_sum($dataPoint) . ")");
                     }
                 }
             }
             
-            // Hitung centroid baru (rata-rata)
+            // Hitung centroid baru (rata-rata) dengan precision tinggi
             if (!empty($clusterData)) {
                 $centroid = [];
                 $numData = count($clusterData);
                 
                 // Untuk setiap feature (K1, K2, K3, K4, K5)
                 for ($feature = 0; $feature < $numFeatures; $feature++) {
-                    $sum = 0.0; // Gunakan float untuk presisi
+                    $sum = 0.0; // Gunakan float eksplisit
                     foreach ($clusterData as $dataPoint) {
-                        $sum += (float)$dataPoint[$feature];
+                        $sum += (float)$dataPoint[$feature]; // Cast ke float untuk precision
                     }
+                    // Hitung rata-rata dengan precision tinggi dulu, baru bulatkan
                     $average = $sum / $numData;
-                    $centroid[] = round($average, 1); // Round to 1 decimal place seperti Excel
+                    $centroid[] = round($average, 1); // Gunakan 1 decimal place untuk konsistensi dengan perhitungan manual
                 }
                 $newCentroids[] = $centroid;
                 
                 if ($debugMode) {
-                    error_log("New centroid C$cluster: [" . implode(', ', $centroid) . "]");
-                    error_log("  Calculated from " . $numData . " data points");
+                    error_log("New centroid C$cluster: [" . implode(', ', $centroid) . "] (calculated from $numData data points)");
+                    // Debug perhitungan rata-rata per feature
+                    for ($f = 0; $f < $numFeatures; $f++) {
+                        $sum = 0.0;
+                        foreach ($clusterData as $dp) {
+                            $sum += (float)$dp[$f];
+                        }
+                        $rawAverage = $sum / $numData;
+                        $roundedAverage = round($rawAverage, 1);
+                        error_log("  Feature " . ($f + 1) . ": sum=$sum, count=$numData, raw_average=$rawAverage, rounded_average=$roundedAverage");
+                    }
                 }
             } else {
-                // Jika cluster kosong (seharusnya tidak terjadi dengan inisialisasi yang benar)
-                error_log("WARNING: Cluster $cluster is empty! Using previous centroid or default values");
+                // Jika cluster kosong, gunakan strategi fallback
+                error_log("WARNING: Cluster $cluster is empty! Using fallback strategy");
                 
-                // Coba gunakan centroid sebelumnya atau buat centroid random yang realistis
+                // Cari centroid terdekat yang ada atau gunakan nilai acak dalam range data
                 $minValues = [];
                 $maxValues = [];
                 for ($feature = 0; $feature < $numFeatures; $feature++) {
@@ -425,14 +587,21 @@ class ClusteringController extends Controller
                 $centroid = [];
                 for ($feature = 0; $feature < $numFeatures; $feature++) {
                     // Buat nilai random antara min dan max
-                    $randomVal = $minValues[$feature] + (rand() / getrandmax()) * ($maxValues[$feature] - $minValues[$feature]);
-                    $centroid[] = round($randomVal, 3);
+                    $randomVal = $minValues[$feature] + (mt_rand() / mt_getrandmax()) * ($maxValues[$feature] - $minValues[$feature]);
+                    $centroid[] = round($randomVal, 1);
                 }
                 $newCentroids[] = $centroid;
                 
                 if ($debugMode) {
-                    error_log("Generated random centroid C$cluster: [" . implode(', ', $centroid) . "]");
+                    error_log("Generated fallback centroid C$cluster: [" . implode(', ', $centroid) . "]");
                 }
+            }
+        }
+        
+        if ($debugMode) {
+            error_log("Final new centroids (will be used in next iteration):");
+            for ($i = 0; $i < count($newCentroids); $i++) {
+                error_log("  C" . ($i + 1) . ": [" . implode(', ', $newCentroids[$i]) . "]");
             }
         }
         
@@ -441,16 +610,16 @@ class ClusteringController extends Controller
 
     private function euclideanDistanceExact($point1, $point2)
     {
-        // Implementasi Euclidean Distance yang PERSIS seperti Excel
+        // Implementasi Euclidean Distance yang PRESISI TINGGI
         // Formula: √((x1-c1)² + (x2-c2)² + (x3-c3)² + (x4-c4)² + (x5-c5)²)
         
         if (count($point1) != count($point2)) {
-            throw new \Exception("Point dimensions don't match");
+            throw new \Exception("Point dimensions don't match: " . count($point1) . " vs " . count($point2));
         }
         
-        $sumOfSquares = 0;
+        $sumOfSquares = 0.0; // Gunakan float eksplisit
         for ($i = 0; $i < count($point1); $i++) {
-            $diff = $point1[$i] - $point2[$i];
+            $diff = (float)$point1[$i] - (float)$point2[$i]; // Cast ke float
             $sumOfSquares += $diff * $diff;
         }
         
@@ -500,23 +669,24 @@ class ClusteringController extends Controller
             ];
         }
         
-        // Hitung rata-rata untuk setiap cluster
+        // Hitung rata-rata untuk setiap cluster - HARUS SAMA DENGAN CENTROID CALCULATION
         foreach ($summaryClusters as $clusterNum => &$clusterData) {
             if (!empty($clusterData)) {
-                $sums = [0, 0, 0, 0, 0];
+                $sums = [0.0, 0.0, 0.0, 0.0, 0.0]; // Gunakan float eksplisit
                 $count = count($clusterData);
                 
                 foreach ($clusterData as $item) {
-                    $sums[0] += $item['curas'];
-                    $sums[1] += $item['curat'];
-                    $sums[2] += $item['curanmor'];
-                    $sums[3] += $item['anirat'];
-                    $sums[4] += $item['judi'];
+                    $sums[0] += (float)$item['curas'];
+                    $sums[1] += (float)$item['curat'];
+                    $sums[2] += (float)$item['curanmor'];
+                    $sums[3] += (float)$item['anirat'];
+                    $sums[4] += (float)$item['judi'];
                 }
                 
                 if ($count > 0) {
+                    // Gunakan precision yang sama dengan calculateNewCentroids
                     $clusterData['average'] = [
-                        round($sums[0] / $count, 1),
+                        round($sums[0] / $count, 1), // 1 decimal place untuk konsistensi
                         round($sums[1] / $count, 1),
                         round($sums[2] / $count, 1),
                         round($sums[3] / $count, 1),
@@ -551,24 +721,25 @@ class ClusteringController extends Controller
             ];
         }
         
-        // Hitung rata-rata untuk setiap cluster
+        // Hitung rata-rata untuk setiap cluster - HARUS SAMA DENGAN CENTROID CALCULATION
         foreach ($finalClusters as $clusterNum => &$clusterData) {
             if (!empty($clusterData)) {
-                $sums = [0, 0, 0, 0, 0];
+                $sums = [0.0, 0.0, 0.0, 0.0, 0.0]; // Gunakan float eksplisit
                 $count = 0;
                 
                 foreach ($clusterData as $key => $item) {
                     if ($key !== 'average') {
                         for ($i = 0; $i < 5; $i++) {
-                            $sums[$i] += $item['data'][$i];
+                            $sums[$i] += (float)$item['data'][$i];
                         }
                         $count++;
                     }
                 }
                 
                 if ($count > 0) {
+                    // Gunakan precision yang sama dengan calculateNewCentroids
                     $clusterData['average'] = [
-                        round($sums[0] / $count, 1),
+                        round($sums[0] / $count, 1), // 1 decimal place untuk konsistensi
                         round($sums[1] / $count, 1),
                         round($sums[2] / $count, 1),
                         round($sums[3] / $count, 1),
@@ -632,17 +803,22 @@ class ClusteringController extends Controller
 
     private function calculateCentroidChangeExact($oldCentroids, $newCentroids)
     {
-        $totalChange = 0;
-        $maxChange = 0;
+        $totalChange = 0.0;
+        $maxChange = 0.0;
+        $numCentroids = count($oldCentroids);
+        $numFeatures = count($oldCentroids[0]);
         
-        for ($i = 0; $i < count($oldCentroids); $i++) {
-            for ($j = 0; $j < count($oldCentroids[$i]); $j++) {
-                $change = abs($oldCentroids[$i][$j] - $newCentroids[$i][$j]);
+        for ($i = 0; $i < $numCentroids; $i++) {
+            $centroidChange = 0.0;
+            for ($j = 0; $j < $numFeatures; $j++) {
+                $change = abs((float)$oldCentroids[$i][$j] - (float)$newCentroids[$i][$j]);
+                $centroidChange += $change;
                 $totalChange += $change;
                 $maxChange = max($maxChange, $change);
             }
         }
         
-        return round($totalChange, 4);
+        // Return total change (sum of all absolute differences)
+        return round($totalChange, 6);
     }
 }

@@ -473,12 +473,27 @@
                                   </h4>
                                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                                       <div>
-                                          <h5 class="font-medium text-blue-700 mb-1">Jumlah Data per Cluster:</h5>
-                                          <ul class="text-blue-600">
-                                              <li>• C1: {{ $iteration['debug_info']['cluster_counts'][1] }} data ({{ $iteration['cluster_labels'][1] ?? 'Label' }})</li>
-                                              <li>• C2: {{ $iteration['debug_info']['cluster_counts'][2] }} data ({{ $iteration['cluster_labels'][2] ?? 'Label' }})</li>
-                                              <li>• C3: {{ $iteration['debug_info']['cluster_counts'][3] }} data ({{ $iteration['cluster_labels'][3] ?? 'Label' }})</li>
-                                          </ul>
+                                          @if(isset($iteration['is_initialization_only']) && $iteration['is_initialization_only'])
+                                              <h5 class="font-medium text-blue-700 mb-1">Status Iterasi:</h5>
+                                              <p class="text-blue-600 mb-3">
+                                                  <i class="fas fa-star mr-1"></i>
+                                                  <strong>Inisialisasi Centroid Saja</strong> - Belum ada pengelompokan data
+                                              </p>
+                                              
+                                              <h5 class="font-medium text-blue-700 mb-1">Centroid yang Dipilih:</h5>
+                                              <ul class="text-blue-600">
+                                                  <li>• C1 (Tinggi): Data dengan total tertinggi</li>
+                                                  <li>• C2 (Sedang): Data dengan total menengah</li>
+                                                  <li>• C3 (Rendah): Data dengan total terendah</li>
+                                              </ul>
+                                          @else
+                                              <h5 class="font-medium text-blue-700 mb-1">Jumlah Data per Cluster:</h5>
+                                              <ul class="text-blue-600">
+                                                  <li>• C1: {{ $iteration['debug_info']['cluster_counts'][1] }} data ({{ $iteration['cluster_labels'][1] ?? 'Label' }})</li>
+                                                  <li>• C2: {{ $iteration['debug_info']['cluster_counts'][2] }} data ({{ $iteration['cluster_labels'][2] ?? 'Label' }})</li>
+                                                  <li>• C3: {{ $iteration['debug_info']['cluster_counts'][3] }} data ({{ $iteration['cluster_labels'][3] ?? 'Label' }})</li>
+                                              </ul>
+                                          @endif
                                           
                                           <h5 class="font-medium text-blue-700 mb-1 mt-3">Total Centroid:</h5>
                                           <ul class="text-blue-600">
@@ -499,7 +514,7 @@
                                               @endif
                                           </p>
                                           @endif
-                                          @if(isset($iteration['debug_info']['assignment_changed']))
+                                          @if(isset($iteration['debug_info']['assignment_changed']) && $iteration['debug_info']['assignment_changed'] !== null)
                                           <p class="text-blue-600">
                                               Assignment: 
                                               @if($iteration['debug_info']['assignment_changed'])
@@ -521,7 +536,16 @@
                                       </div>
                                   </div>
                                   
-                                  @if(isset($iteration['debug_info']['assignment_changed']) && !$iteration['debug_info']['assignment_changed'] && $iteration['iteration'] > 1)
+                                  @if(isset($iteration['debug_info']['explanation']))
+                                  <div class="mt-3 p-3 bg-blue-100 border border-blue-300 rounded">
+                                      <p class="text-blue-800 text-sm">
+                                          <i class="fas fa-info-circle mr-1"></i>
+                                          <strong>Penjelasan:</strong> {{ $iteration['debug_info']['explanation'] }}
+                                      </p>
+                                  </div>
+                                  @endif
+                                  
+                                  @if(isset($iteration['debug_info']['assignment_changed']) && !$iteration['debug_info']['assignment_changed'] && $iteration['iteration'] > 2)
                                   <div class="mt-3 p-3 bg-yellow-100 border border-yellow-300 rounded">
                                       <p class="text-yellow-800 text-sm">
                                           <i class="fas fa-exclamation-triangle mr-1"></i>
@@ -541,37 +565,44 @@
                                           Iterasi Pertama - Inisialisasi Centroid dari Data Aktual
                                       </h4>
                                       <p class="text-sm text-orange-700 mb-2">
-                                          Menggunakan metode inisialisasi centroid berdasarkan data aktual (seperti dalam gambar referensi):
+                                          Pada iterasi pertama, algoritma hanya melakukan <strong>inisialisasi centroid</strong> dari data aktual, belum ada pengelompokan data:
                                       </p>
                                       <ul class="text-sm text-orange-700 space-y-1">
                                           <li class="flex items-start">
                                               <i class="fas fa-arrow-right mr-2 mt-1 text-xs"></i>
-                                              <strong>Centroid 1 (Tinggi):</strong> Data dengan total kejahatan tertinggi
+                                              <strong>Centroid 1 (Tinggi):</strong> Dipilih dari data dengan total kejahatan tertinggi
                                           </li>
                                           <li class="flex items-start">
                                               <i class="fas fa-arrow-right mr-2 mt-1 text-xs"></i>
-                                              <strong>Centroid 2 (Sedang):</strong> Data dengan total kejahatan sedang/tengah
+                                              <strong>Centroid 2 (Sedang):</strong> Dipilih dari data dengan total kejahatan menengah
                                           </li>
                                           <li class="flex items-start">
                                               <i class="fas fa-arrow-right mr-2 mt-1 text-xs"></i>
-                                              <strong>Centroid 3 (Rendah):</strong> Data dengan total kejahatan terendah
+                                              <strong>Centroid 3 (Rendah):</strong> Dipilih dari data dengan total kejahatan terendah
                                           </li>
                                       </ul>
-                                      <p class="text-sm text-orange-700 mt-2">
-                                          Metode ini memberikan centroid awal yang representatif dan sesuai dengan literatur K-Means.
-                                      </p>
+                                      <div class="mt-3 p-3 bg-orange-100 border border-orange-300 rounded">
+                                          <p class="text-sm text-orange-800">
+                                              <i class="fas fa-lightbulb mr-1"></i>
+                                              <strong>Catatan:</strong> Pengelompokan data baru dimulai dari iterasi ke-2 menggunakan centroid yang telah diinisialisasi.
+                                          </p>
+                                      </div>
                                   </div>
                               @else
                                   <!-- Penjelasan Iterasi Kedua dan Seterusnya -->
                                   <div class="mb-4 p-4 bg-green-50 border-l-4 border-green-500 rounded">
                                       <h4 class="font-semibold text-green-800 mb-2">
                                           <i class="fas fa-calculator mr-2"></i>
-                                          Iterasi {{ $iteration['iteration'] }} - Update Centroid
+                                          Iterasi {{ $iteration['iteration'] }} - Assignment dan Update Centroid
                                       </h4>
                                       <p class="text-sm text-green-700">
-                                          Centroid diperbarui menggunakan rata-rata dari data yang telah dikelompokkan pada iterasi sebelumnya. 
-                                          Ini adalah proses standar algoritma K-Means.
+                                          Pada iterasi ini, algoritma melakukan:
                                       </p>
+                                      <ol class="text-sm text-green-700 mt-2 space-y-1 ml-4">
+                                          <li>1. Menghitung jarak setiap data ke centroid iterasi {{ $iteration['iteration'] - 1 }}</li>
+                                          <li>2. Mengelompokkan data ke cluster berdasarkan jarak minimum</li>
+                                          <li>3. Menghitung centroid baru sebagai rata-rata cluster untuk iterasi berikutnya</li>
+                                      </ol>
                                   </div>
                               @endif
 
@@ -596,8 +627,13 @@
                                   </div>
                               @endif
 
-                              <!-- Summary Cards untuk setiap iterasi -->                                            
+                              <!-- Summary Cards untuk setiap iterasi - HANYA JIKA BUKAN INITIALIZATION ONLY -->                                            
+                              @if(!isset($iteration['is_initialization_only']) || !$iteration['is_initialization_only'])
                               <div class="p-6">
+                                  <h4 class="font-semibold text-gray-800 mb-4">
+                                      <i class="fas fa-object-group mr-2 text-indigo-600"></i>
+                                      Hasil Pengelompokan Data
+                                  </h4>
                                   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                                       @foreach([1 => 'Tinggi', 2 => 'Sedang', 3 => 'Rendah'] as $clusterNum => $clusterLabel)
                                           @php
@@ -704,12 +740,66 @@
                                       @endforeach
                                   </div>
                               </div>
+                              @else
+                              <!-- Tampilan khusus untuk iterasi 1 (inisialisasi saja) -->
+                              <div class="p-6">
+                                  <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
+                                      <h4 class="font-semibold text-blue-800 mb-4">
+                                          <i class="fas fa-info-circle mr-2"></i>
+                                          Centroid yang Diinisialisasi (Belum Ada Pengelompokan)
+                                      </h4>
+                                      <p class="text-sm text-blue-700 mb-4">
+                                          Pada iterasi pertama, hanya centroid yang diinisialisasi dari data aktual. Pengelompokan data dimulai dari iterasi ke-2.
+                                      </p>
+                                      
+                                      <!-- Tampilkan centroid yang dipilih -->
+                                      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                          @foreach([1 => ['label' => 'Tinggi', 'color' => 'red', 'icon' => 'fas fa-exclamation-triangle'], 
+                                                    2 => ['label' => 'Sedang', 'color' => 'yellow', 'icon' => 'fas fa-minus-circle'], 
+                                                    3 => ['label' => 'Rendah', 'color' => 'green', 'icon' => 'fas fa-check-circle']] as $clusterNum => $config)
+                                              @php
+                                                  $centroid = $iteration['centroids'][$clusterNum - 1] ?? [];
+                                                  $total = !empty($centroid) ? array_sum($centroid) : 0;
+                                              @endphp
+                                              <div class="bg-{{ $config['color'] }}-50 border border-{{ $config['color'] }}-200 rounded-lg p-4">
+                                                  <div class="flex items-center mb-3">
+                                                      <div class="p-2 bg-white rounded-full shadow-sm">
+                                                          <i class="{{ $config['icon'] }} text-{{ $config['color'] }}-600"></i>
+                                                      </div>
+                                                      <div class="ml-3">
+                                                          <h5 class="font-bold text-{{ $config['color'] }}-800">
+                                                              Centroid {{ $clusterNum }} - {{ $config['label'] }}
+                                                          </h5>
+                                                          <p class="text-sm text-{{ $config['color'] }}-600">Total: {{ $total }}</p>
+                                                      </div>
+                                                  </div>
+                                                  @if(!empty($centroid))
+                                                  <div class="grid grid-cols-5 gap-1 text-xs">
+                                                      @foreach(['Curas', 'Curat', 'Curanmor', 'Anirat', 'Judi'] as $idx => $label)
+                                                      <div class="text-center p-2 bg-white rounded">
+                                                          <div class="text-gray-500 text-xs">{{ $label }}</div>
+                                                          <div class="font-bold text-{{ $config['color'] }}-700">{{ $centroid[$idx] ?? 0 }}</div>
+                                                      </div>
+                                                      @endforeach
+                                                  </div>
+                                                  @endif
+                                              </div>
+                                          @endforeach
+                                      </div>
+                                  </div>
+                              </div>
+                              @endif
 
                               <!-- Tabel Centroid -->
                               <div class="mb-6">
                                   <h4 class="font-semibold text-gray-800 mb-3">
                                       <i class="fas fa-crosshairs mr-2 text-indigo-600"></i>
                                       Centroid Iterasi {{ $iteration['iteration'] }}
+                                      @if(isset($iteration['is_initialization_only']) && $iteration['is_initialization_only'])
+                                          <span class="text-sm font-normal text-gray-600">(Inisialisasi dari Data Aktual)</span>
+                                      @else
+                                          <span class="text-sm font-normal text-gray-600">(Hasil Perhitungan = Rata-rata Cluster)</span>
+                                      @endif
                                   </h4>
                                   <div class="overflow-x-auto">
                                       <table class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
@@ -757,7 +847,8 @@
                                   </div>
                               </div>
 
-                              <!-- Tabel Detail Perhitungan Jarak -->
+                              <!-- Tabel Detail Perhitungan Jarak - HANYA JIKA BUKAN INITIALIZATION ONLY -->
+                              @if(!isset($iteration['is_initialization_only']) || !$iteration['is_initialization_only'])
                               <div class="mb-6">
                                   <h4 class="font-semibold text-gray-800 mb-3">
                                       <i class="fas fa-ruler mr-2 text-purple-600"></i>
@@ -828,6 +919,19 @@
                                       </table>
                                   </div>
                               </div>
+                              @else
+                              <!-- Pesan untuk iterasi 1 -->
+                              <div class="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                                  <h4 class="font-semibold text-gray-700 mb-2">
+                                      <i class="fas fa-info-circle mr-2"></i>
+                                      Belum Ada Perhitungan Jarak
+                                  </h4>
+                                  <p class="text-sm text-gray-600">
+                                      Pada iterasi pertama, belum dilakukan perhitungan jarak dan penugasan cluster. 
+                                      Proses clustering dimulai dari iterasi ke-2 menggunakan centroid yang telah diinisialisasi di atas.
+                                  </p>
+                              </div>
+                              @endif
                           </div>
                       </div>
                   </div>
