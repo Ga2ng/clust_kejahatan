@@ -223,19 +223,19 @@
                                     Bulan
                                 </th>
                                 <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Curas
+                                    Pencurian dengan Kekerasan
                                 </th>
                                 <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Curat
+                                    Pencurian dengan Pemberatan
                                 </th>
                                 <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Curanmor
+                                    Pencurian Kendaraan Bermotor
                                 </th>
                                 <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Anirat
+                                    Pencurian dengan Aniaya
                                 </th>
                                 <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Judi
+                                    Perjudian
                                 </th>
                                 <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Total
@@ -655,7 +655,7 @@
                                         <i class="fas fa-object-group mr-2 text-indigo-600"></i>
                                         Hasil Pengelompokan Data
                                     </h4>
-                                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                    <div class="grid grid-cols-1 gap-6">
                                         @foreach([1 => 'Tinggi', 2 => 'Sedang', 3 => 'Rendah'] as $clusterNum => $clusterLabel)
                                             @php
                                                 // Gunakan data dari iterasi saat ini, bukan final_clusters
@@ -686,33 +686,33 @@
                                                     <!-- Detail Data Bulan -->
                                                     <div class="space-y-2">
                                                         <h4 class="font-semibold text-gray-800 text-sm">Detail Data:</h4>
-                                                        <div class="max-h-64 overflow-y-auto">
+                                                        <div class="space-y-2">
                                                             @foreach($clusterData as $key => $item)
                                                                 @if($key !== 'average')
-                                                                <div class="bg-white p-3 rounded-lg shadow-sm border-l-2 {{ $borderColor }} mb-2">
-                                                                    <div class="flex justify-between items-center mb-2">
-                                                                        <span class="font-medium text-gray-800 text-sm">{{ $item['month'] }}</span>
+                                                                <div class="bg-white p-2 rounded-lg shadow-sm border-l-2 {{ $borderColor }}">
+                                                                    <div class="flex items-center justify-between mb-1">
+                                                                        <span class="font-medium text-gray-800 text-xs">{{ $item['month'] }}</span>
                                                                         <span class="text-xs text-gray-500">Data-{{ $item['data_index'] }}</span>
                                                                     </div>
-                                                                    <div class="grid grid-cols-5 gap-1 text-xs">
-                                                                        <div class="text-center p-1">
-                                                                            <div class="text-gray-500 text-xs">Curas</div>
+                                                                    <div class="grid grid-cols-5 gap-2 text-xs">
+                                                                        <div class="text-center">
+                                                                            <div class="text-gray-500 text-xs">Pencurian dengan Kekerasan</div>
                                                                             <div class="font-bold {{ $textColor }}">{{ $item['data'][0] }}</div>
                                                                         </div>
-                                                                        <div class="text-center p-1">
-                                                                            <div class="text-gray-500 text-xs">Curat</div>
+                                                                        <div class="text-center">
+                                                                            <div class="text-gray-500 text-xs">Pencurian dengan Pemberatan</div>
                                                                             <div class="font-bold {{ $textColor }}">{{ $item['data'][1] }}</div>
                                                                         </div>
-                                                                        <div class="text-center p-1">
-                                                                            <div class="text-gray-500 text-xs">Curanmor</div>
+                                                                        <div class="text-center">
+                                                                            <div class="text-gray-500 text-xs">Pencurian Kendaraan Bermotor</div>
                                                                             <div class="font-bold {{ $textColor }}">{{ $item['data'][2] }}</div>
                                                                         </div>
-                                                                        <div class="text-center p-1">
-                                                                            <div class="text-gray-500 text-xs">Anirat</div>
+                                                                        <div class="text-center">
+                                                                            <div class="text-gray-500 text-xs">Pencurian dengan Aniaya</div>
                                                                             <div class="font-bold {{ $textColor }}">{{ $item['data'][3] }}</div>
                                                                         </div>
-                                                                        <div class="text-center p-1">
-                                                                            <div class="text-gray-500 text-xs">Judi</div>
+                                                                        <div class="text-center">
+                                                                            <div class="text-gray-500 text-xs">Perjudian</div>
                                                                             <div class="font-bold {{ $textColor }}">{{ $item['data'][4] }}</div>
                                                                         </div>
                                                                     </div>
@@ -724,27 +724,27 @@
                                                         @if($iteration['is_first_iteration'] == false)
                                                             @if(isset($clusterData['average']))
                                                             <!-- Rata-rata Cluster -->
-                                                            <div class="mt-3 p-3 bg-white rounded-lg shadow-sm border-2 {{ $borderColor }}">
+                                                            <div class="mt-3 p-2 bg-white rounded-lg shadow-sm border-2 {{ $borderColor }}">
                                                                 <h5 class="font-semibold text-gray-800 text-xs mb-2">Rata-rata Cluster:</h5>
-                                                                <div class="grid grid-cols-5 gap-1 text-xs">
+                                                                <div class="grid grid-cols-5 gap-2 text-xs">
                                                                     <div class="text-center">
-                                                                        <div class="text-gray-500">Curas</div>
+                                                                        <div class="text-gray-500 text-xs">Pencurian dengan Kekerasan</div>
                                                                         <div class="font-bold {{ $textColor }}">{{ $clusterData['average'][0] }}</div>
                                                                     </div>
                                                                     <div class="text-center">
-                                                                        <div class="text-gray-500">Curat</div>
+                                                                        <div class="text-gray-500 text-xs">Pencurian dengan Pemberatan</div>
                                                                         <div class="font-bold {{ $textColor }}">{{ $clusterData['average'][1] }}</div>
                                                                     </div>
                                                                     <div class="text-center">
-                                                                        <div class="text-gray-500">Curanmor</div>
+                                                                        <div class="text-gray-500 text-xs">Pencurian Kendaraan Bermotor</div>
                                                                         <div class="font-bold {{ $textColor }}">{{ $clusterData['average'][2] }}</div>
                                                                     </div>
                                                                     <div class="text-center">
-                                                                        <div class="text-gray-500">Anirat</div>
+                                                                        <div class="text-gray-500 text-xs">Pencurian dengan Aniaya</div>
                                                                         <div class="font-bold {{ $textColor }}">{{ $clusterData['average'][3] }}</div>
                                                                     </div>
                                                                     <div class="text-center">
-                                                                        <div class="text-gray-500">Judi</div>
+                                                                        <div class="text-gray-500 text-xs">Perjudian</div>
                                                                         <div class="font-bold {{ $textColor }}">{{ $clusterData['average'][4] }}</div>
                                                                     </div>
                                                                 </div>
@@ -774,7 +774,7 @@
                                         </p>
                                         
                                         <!-- Tampilkan centroid yang dipilih -->
-                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div class="space-y-4">
                                             @foreach([1 => ['label' => 'Tinggi', 'color' => 'red', 'icon' => 'fas fa-exclamation-triangle'], 
                                                         2 => ['label' => 'Sedang', 'color' => 'yellow', 'icon' => 'fas fa-minus-circle'], 
                                                         3 => ['label' => 'Rendah', 'color' => 'green', 'icon' => 'fas fa-check-circle']] as $clusterNum => $config)
@@ -795,13 +795,23 @@
                                                         </div>
                                                     </div>
                                                     @if(!empty($centroid))
-                                                    <div class="grid grid-cols-5 gap-1 text-xs">
-                                                        @foreach(['Curas', 'Curat', 'Curanmor', 'Anirat', 'Judi'] as $idx => $label)
-                                                        <div class="text-center p-2 bg-white rounded">
-                                                            <div class="text-gray-500 text-xs">{{ $label }}</div>
-                                                            <div class="font-bold text-{{ $config['color'] }}-700">{{ $centroid[$idx] ?? 0 }}</div>
-                                                        </div>
-                                                        @endforeach
+                                                    <div class="overflow-x-auto">
+                                                        <table class="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
+                                                            <thead class="bg-gray-50">
+                                                                <tr>
+                                                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Jenis Kejahatan</th>
+                                                                    <th class="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase">Nilai</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody class="divide-y divide-gray-200">
+                                                                @foreach(['Pencurian dengan Kekerasan', 'Pencurian dengan Pemberatan', 'Pencurian Kendaraan Bermotor', 'Pencurian dengan Aniaya', 'Perjudian'] as $idx => $label)
+                                                                <tr class="hover:bg-gray-50">
+                                                                    <td class="px-3 py-2 text-sm text-gray-700">{{ $label }}</td>
+                                                                    <td class="px-3 py-2 text-sm text-center font-bold text-{{ $config['color'] }}-700">{{ $centroid[$idx] ?? 0 }}</td>
+                                                                </tr>
+                                                                @endforeach
+                                                            </tbody>
+                                                        </table>
                                                     </div>
                                                     @endif
                                                 </div>
@@ -830,19 +840,19 @@
                                                         Centroid
                                                     </th>
                                                     <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                        Curas
+                                                        Pencurian dengan Kekerasan
                                                     </th>
                                                     <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                        Curat
+                                                        Pencurian dengan Pemberatan
                                                     </th>
                                                     <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                        Curanmor
+                                                        Pencurian Kendaraan Bermotor
                                                     </th>
                                                     <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                        Anirat
+                                                        Pencurian dengan Aniaya
                                                     </th>
                                                     <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                        Judi
+                                                        Perjudian
                                                     </th>
                                                 </tr>
                                             </thead>
@@ -987,6 +997,263 @@
                                 Rata-rata Kejahatan per Cluster
                             </h3>
                             <canvas id="crimeAverageChart" width="400" height="300"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Detail Bulan per Cluster -->
+                    <div class="mt-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                            <i class="fas fa-calendar-alt mr-2 text-purple-600"></i>
+                            Detail Bulan per Cluster
+                        </h3>
+                        
+                        <!-- Informasi Bulan Tertinggi dan Terendah -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            @php
+                                $highestMonth = null;
+                                $lowestMonth = null;
+                                $highestTotal = 0;
+                                $lowestTotal = PHP_INT_MAX;
+                                
+                                foreach($data12bulan as $item) {
+                                    $total = $item['curas'] + $item['curat'] + $item['curanmor'] + $item['anirat'] + $item['judi'];
+                                    if ($total > $highestTotal) {
+                                        $highestTotal = $total;
+                                        $highestMonth = $item;
+                                    }
+                                    if ($total < $lowestTotal) {
+                                        $lowestTotal = $total;
+                                        $lowestMonth = $item;
+                                    }
+                                }
+                            @endphp
+                            
+                            <!-- Bulan Tertinggi -->
+                            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                                <div class="flex items-center mb-3">
+                                    <div class="p-2 bg-red-100 rounded-full">
+                                        <i class="fas fa-arrow-up text-red-600"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h4 class="font-bold text-red-800">Bulan Tertinggi</h4>
+                                        <p class="text-sm text-red-600">{{ $highestMonth['bulan'] ?? 'N/A' }}</p>
+                                    </div>
+                                </div>
+                                @if($highestMonth)
+                                <div class="bg-white p-3 rounded border-l-4 border-red-500">
+                                    <div class="grid grid-cols-5 gap-2 text-xs">
+                                        <div class="text-center">
+                                            <div class="text-gray-500">Pencurian dengan Kekerasan</div>
+                                            <div class="font-bold text-red-700">{{ $highestMonth['curas'] }}</div>
+                                        </div>
+                                        <div class="text-center">
+                                            <div class="text-gray-500">Pencurian dengan Pemberatan</div>
+                                            <div class="font-bold text-red-700">{{ $highestMonth['curat'] }}</div>
+                                        </div>
+                                        <div class="text-center">
+                                            <div class="text-gray-500">Pencurian Kendaraan Bermotor</div>
+                                            <div class="font-bold text-red-700">{{ $highestMonth['curanmor'] }}</div>
+                                        </div>
+                                        <div class="text-center">
+                                            <div class="text-gray-500">Pencurian dengan Aniaya</div>
+                                            <div class="font-bold text-red-700">{{ $highestMonth['anirat'] }}</div>
+                                        </div>
+                                        <div class="text-center">
+                                            <div class="text-gray-500">Perjudian</div>
+                                            <div class="font-bold text-red-700">{{ $highestMonth['judi'] }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 text-center">
+                                        <span class="text-lg font-bold text-red-800">Total: {{ $highestTotal }}</span>
+                                    </div>
+                                </div>
+                                @endif
+                            </div>
+                            
+                            <!-- Bulan Terendah -->
+                            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                                <div class="flex items-center mb-3">
+                                    <div class="p-2 bg-green-100 rounded-full">
+                                        <i class="fas fa-arrow-down text-green-600"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h4 class="font-bold text-green-800">Bulan Terendah</h4>
+                                        <p class="text-sm text-green-600">{{ $lowestMonth['bulan'] ?? 'N/A' }}</p>
+                                    </div>
+                                </div>
+                                @if($lowestMonth)
+                                <div class="bg-white p-3 rounded border-l-4 border-green-500">
+                                    <div class="grid grid-cols-5 gap-2 text-xs">
+                                        <div class="text-center">
+                                            <div class="text-gray-500">Pencurian dengan Kekerasan</div>
+                                            <div class="font-bold text-green-700">{{ $lowestMonth['curas'] }}</div>
+                                        </div>
+                                        <div class="text-center">
+                                            <div class="text-gray-500">Pencurian dengan Pemberatan</div>
+                                            <div class="font-bold text-green-700">{{ $lowestMonth['curat'] }}</div>
+                                        </div>
+                                        <div class="text-center">
+                                            <div class="text-gray-500">Pencurian Kendaraan Bermotor</div>
+                                            <div class="font-bold text-green-700">{{ $lowestMonth['curanmor'] }}</div>
+                                        </div>
+                                        <div class="text-center">
+                                            <div class="text-gray-500">Pencurian dengan Aniaya</div>
+                                            <div class="font-bold text-green-700">{{ $lowestMonth['anirat'] }}</div>
+                                        </div>
+                                        <div class="text-center">
+                                            <div class="text-gray-500">Perjudian</div>
+                                            <div class="font-bold text-green-700">{{ $lowestMonth['judi'] }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 text-center">
+                                        <span class="text-lg font-bold text-green-800">Total: {{ $lowestTotal }}</span>
+                                    </div>
+                                </div>
+                                @endif
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <!-- Cluster Tinggi -->
+                            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                                <div class="flex items-center mb-3">
+                                    <div class="p-2 bg-red-100 rounded-full">
+                                        <i class="fas fa-exclamation-triangle text-red-600"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h4 class="font-bold text-red-800">Cluster Tinggi</h4>
+                                        <p class="text-sm text-red-600">{{ $highClusterCount }} bulan</p>
+                                    </div>
+                                </div>
+                                @if(isset($final_clusters[1]))
+                                    <div class="space-y-2">
+                                        @foreach($final_clusters[1] as $key => $item)
+                                            @if($key !== 'average')
+                                            @php
+                                                $total = array_sum($item['data']);
+                                            @endphp
+                                            <div class="bg-white p-2 rounded border-l-2 border-red-500">
+                                                <div class="flex justify-between items-center">
+                                                    <span class="text-sm font-medium text-gray-800">{{ $item['month'] }}</span>
+                                                    <span class="text-xs font-bold text-red-700">Total: {{ $total }}</span>
+                                                </div>
+                                                <div class="grid grid-cols-5 gap-1 text-xs mt-1">
+                                                    <div class="text-center">
+                                                        <div class="text-gray-500">{{ $item['data'][0] }}</div>
+                                                    </div>
+                                                    <div class="text-center">
+                                                        <div class="text-gray-500">{{ $item['data'][1] }}</div>
+                                                    </div>
+                                                    <div class="text-center">
+                                                        <div class="text-gray-500">{{ $item['data'][2] }}</div>
+                                                    </div>
+                                                    <div class="text-center">
+                                                        <div class="text-gray-500">{{ $item['data'][3] }}</div>
+                                                    </div>
+                                                    <div class="text-center">
+                                                        <div class="text-gray-500">{{ $item['data'][4] }}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            @endif
+                                        @endforeach
+                                    </div>
+                                @endif
+                            </div>
+                            
+                            <!-- Cluster Sedang -->
+                            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                <div class="flex items-center mb-3">
+                                    <div class="p-2 bg-yellow-100 rounded-full">
+                                        <i class="fas fa-minus-circle text-yellow-600"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h4 class="font-bold text-yellow-800">Cluster Sedang</h4>
+                                        <p class="text-sm text-yellow-600">{{ $mediumClusterCount }} bulan</p>
+                                    </div>
+                                </div>
+                                @if(isset($final_clusters[2]))
+                                    <div class="space-y-2">
+                                        @foreach($final_clusters[2] as $key => $item)
+                                            @if($key !== 'average')
+                                            @php
+                                                $total = array_sum($item['data']);
+                                            @endphp
+                                            <div class="bg-white p-2 rounded border-l-2 border-yellow-500">
+                                                <div class="flex justify-between items-center">
+                                                    <span class="text-sm font-medium text-gray-800">{{ $item['month'] }}</span>
+                                                    <span class="text-xs font-bold text-yellow-700">Total: {{ $total }}</span>
+                                                </div>
+                                                <div class="grid grid-cols-5 gap-1 text-xs mt-1">
+                                                    <div class="text-center">
+                                                        <div class="text-gray-500">{{ $item['data'][0] }}</div>
+                                                    </div>
+                                                    <div class="text-center">
+                                                        <div class="text-gray-500">{{ $item['data'][1] }}</div>
+                                                    </div>
+                                                    <div class="text-center">
+                                                        <div class="text-gray-500">{{ $item['data'][2] }}</div>
+                                                    </div>
+                                                    <div class="text-center">
+                                                        <div class="text-gray-500">{{ $item['data'][3] }}</div>
+                                                    </div>
+                                                    <div class="text-center">
+                                                        <div class="text-gray-500">{{ $item['data'][4] }}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            @endif
+                                        @endforeach
+                                    </div>
+                                @endif
+                            </div>
+                            
+                            <!-- Cluster Rendah -->
+                            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                                <div class="flex items-center mb-3">
+                                    <div class="p-2 bg-green-100 rounded-full">
+                                        <i class="fas fa-check-circle text-green-600"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h4 class="font-bold text-green-800">Cluster Rendah</h4>
+                                        <p class="text-sm text-green-600">{{ $lowClusterCount }} bulan</p>
+                                    </div>
+                                </div>
+                                @if(isset($final_clusters[3]))
+                                    <div class="space-y-2">
+                                        @foreach($final_clusters[3] as $key => $item)
+                                            @if($key !== 'average')
+                                            @php
+                                                $total = array_sum($item['data']);
+                                            @endphp
+                                            <div class="bg-white p-2 rounded border-l-2 border-green-500">
+                                                <div class="flex justify-between items-center">
+                                                    <span class="text-sm font-medium text-gray-800">{{ $item['month'] }}</span>
+                                                    <span class="text-xs font-bold text-green-700">Total: {{ $total }}</span>
+                                                </div>
+                                                <div class="grid grid-cols-5 gap-1 text-xs mt-1">
+                                                    <div class="text-center">
+                                                        <div class="text-gray-500">{{ $item['data'][0] }}</div>
+                                                    </div>
+                                                    <div class="text-center">
+                                                        <div class="text-gray-500">{{ $item['data'][1] }}</div>
+                                                    </div>
+                                                    <div class="text-center">
+                                                        <div class="text-gray-500">{{ $item['data'][2] }}</div>
+                                                    </div>
+                                                    <div class="text-center">
+                                                        <div class="text-gray-500">{{ $item['data'][3] }}</div>
+                                                    </div>
+                                                    <div class="text-center">
+                                                        <div class="text-gray-500">{{ $item['data'][4] }}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            @endif
+                                        @endforeach
+                                    </div>
+                                @endif
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1156,16 +1423,14 @@
                     </h2>
                     
                     <div class="flex flex-wrap gap-4">
-                        <button onclick="exportToPDF()" 
+                        <button id="exportPdfBtn" onclick="exportToPDF()" 
                                 class="inline-flex items-center px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-200">
                             <i class="fas fa-file-pdf mr-2"></i>
-                            Export PDF
-                        </button>
-                        
-                        <button onclick="exportToExcel()" 
-                                class="inline-flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-200">
-                            <i class="fas fa-file-excel mr-2"></i>
-                            Export Excel
+                            <span class="btn-text">Export PDF</span>
+                            <span class="btn-loading hidden">
+                                <i class="fas fa-spinner fa-spin mr-2"></i>
+                                Generating...
+                            </span>
                         </button>
                         
                         <button onclick="printResults()" 
@@ -1236,7 +1501,7 @@
             // Bar chart untuk rata-rata kejahatan
             @if(isset($final_clusters))
             const averageData = {
-                labels: ['Curas', 'Curat', 'Curanmor', 'Anirat', 'Judi'],
+                labels: ['Pencurian dengan Kekerasan', 'Pencurian dengan Pemberatan', 'Pencurian Kendaraan Bermotor', 'Pencurian dengan Aniaya', 'Perjudian'],
                 datasets: [
                     @if(isset($final_clusters[1]['average']))
                     {
@@ -1294,9 +1559,107 @@
         });
 
         // Fungsi export dan print
+        function exportToPDF() {
+            const btn = document.getElementById('exportPdfBtn');
+            const btnText = btn.querySelector('.btn-text');
+            const btnLoading = btn.querySelector('.btn-loading');
+            
+            // Show loading state
+            btn.disabled = true;
+            btnText.classList.add('hidden');
+            btnLoading.classList.remove('hidden');
+            
+            // Siapkan data untuk dikirim ke controller
+            const formData = new FormData();
+            formData.append('tahun', '{{ $tahun }}');
+            formData.append('data12bulan', JSON.stringify(@json($data12bulan)));
+            formData.append('iterations', JSON.stringify(@json($iterations)));
+            formData.append('final_clusters', JSON.stringify(@json($final_clusters)));
+            formData.append('convergence_info', JSON.stringify(@json($convergence_info)));
+            @if(isset($debug_info))
+            formData.append('debug_info', JSON.stringify(@json($debug_info)));
+            @endif
+            formData.append('_token', '{{ csrf_token() }}');
+            
+            // Kirim request ke controller
+            fetch('{{ route("clustering.export-pdf") }}', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.blob();
+                }
+                throw new Error('Network response was not ok');
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `hasil_clustering_kmeans_tahun_{{ $tahun }}_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                a.remove();
+                
+                // Show success message
+                showNotification('PDF berhasil di-generate dan di-download!', 'success');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Terjadi kesalahan saat export PDF', 'error');
+            })
+            .finally(() => {
+                // Hide loading state
+                btn.disabled = false;
+                btnText.classList.remove('hidden');
+                btnLoading.classList.add('hidden');
+            });
+        }
+
+
 
         function printResults() {
             window.print();
+        }
+
+        // Notification function
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full`;
+            
+            // Set colors based on type
+            if (type === 'success') {
+                notification.classList.add('bg-green-500', 'text-white');
+            } else if (type === 'error') {
+                notification.classList.add('bg-red-500', 'text-white');
+            } else {
+                notification.classList.add('bg-blue-500', 'text-white');
+            }
+            
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'} mr-2"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            // Add to page
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
         }
 
         // Auto-expand first iteration
@@ -1325,6 +1688,21 @@
                 -webkit-print-color-adjust: exact;
                 color-adjust: exact;
             }
+        }
+        
+        /* Loading state styles */
+        .btn-loading {
+            display: none;
+        }
+        
+        .btn-loading:not(.hidden) {
+            display: inline-flex;
+        }
+        
+        /* Disabled button styles */
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
     </style>
     </x-app-layout>

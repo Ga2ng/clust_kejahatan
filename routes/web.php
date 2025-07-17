@@ -36,6 +36,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
     Route::get('/dashboard/data', [DashboardController::class, 'getData'])->name('dashboard.data');
     Route::post('/dashboard/save', [DashboardController::class, 'store'])->name('dashboard.store');
+    Route::get('/dashboard/show/{id}', [DashboardController::class, 'show'])->name('dashboard.show');
     Route::put('/dashboard/{id}', [DashboardController::class, 'update'])->name('dashboard.update');
     Route::delete('/dashboard/{id}', [DashboardController::class, 'destroy'])->name('dashboard.destroy');
 
@@ -44,6 +45,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [ClusteringController::class, 'index'])->name('index');
         Route::post('/cluster', [ClusteringController::class, 'cluster'])->name('cluster');
         Route::get('/result', [ClusteringController::class, 'result'])->name('result');
+        Route::post('/export-pdf', [ClusteringController::class, 'exportPDF'])->name('export-pdf');
     });
 });
 

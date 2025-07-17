@@ -37,6 +37,12 @@ class DashboardController extends Controller
         return response()->json($data);
     }
 
+    public function show($id)
+    {
+        $data = DataKejahatan::findOrFail($id);
+        return response()->json($data);
+    }
+
     public function store(Request $request)
     {
         // Validasi data

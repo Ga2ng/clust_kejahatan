@@ -1,4 +1,5 @@
 <x-app-layout>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             {{ __('Data Kejahatan') }}
@@ -37,11 +38,11 @@
                             <label for="crime-filter" class="block text-sm font-medium text-gray-700 mb-1">Filter Jenis Kejahatan:</label>
                             <select id="crime-filter" class="appearance-none border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white pr-8">
                                 <option value="">Semua Jenis</option>
-                                <option value="curas">Curas</option>
-                                <option value="curat">Curat</option>
-                                <option value="curanmor">Curanmor</option>
-                                <option value="anirat">Anirat</option>
-                                <option value="judi">Judi</option>
+                                <option value="curas">Pencurian dengan Kekerasan</option>
+                                <option value="curat">Pencurian dengan Pemberatan</option>
+                                <option value="curanmor">Pencurian Kendaraan Bermotor</option>
+                                <option value="anirat">Pencurian dengan Aniaya</option>
+                                <option value="judi">Perjudian</option>
                             </select>
                         </div>
                     </div>
@@ -49,29 +50,34 @@
                     <!-- Statistics Cards -->
                     <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
                         <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-                            <h4 class="text-sm font-medium text-red-600 mb-1">Curas</h4>
+                            <h4 class="text-sm font-medium text-red-600 mb-1">Pencurian dengan Kekerasan</h4>
                             <p class="text-2xl font-bold text-red-700" id="total-curas">{{ number_format($totals['curas']) }}</p>
                             <p class="text-xs text-red-500">Total Kasus</p>
+                            <p class="text-xs text-gray-500 mt-1">(Curas)</p>
                         </div>
                         <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                            <h4 class="text-sm font-medium text-orange-600 mb-1">Curat</h4>
+                            <h4 class="text-sm font-medium text-orange-600 mb-1">Pencurian dengan Pemberatan</h4>
                             <p class="text-2xl font-bold text-orange-700" id="total-curat">{{ number_format($totals['curat']) }}</p>
                             <p class="text-xs text-orange-500">Total Kasus</p>
+                            <p class="text-xs text-gray-500 mt-1">(Curat)</p>
                         </div>
                         <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                            <h4 class="text-sm font-medium text-yellow-600 mb-1">Curanmor</h4>
+                            <h4 class="text-sm font-medium text-yellow-600 mb-1">Pencurian Kendaraan Bermotor</h4>
                             <p class="text-2xl font-bold text-yellow-700" id="total-curanmor">{{ number_format($totals['curanmor']) }}</p>
                             <p class="text-xs text-yellow-500">Total Kasus</p>
+                            <p class="text-xs text-gray-500 mt-1">(Curanmor)</p>
                         </div>
                         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                            <h4 class="text-sm font-medium text-blue-600 mb-1">Anirat</h4>
+                            <h4 class="text-sm font-medium text-blue-600 mb-1">Pencurian dengan Aniaya</h4>
                             <p class="text-2xl font-bold text-blue-700" id="total-anirat">{{ number_format($totals['anirat']) }}</p>
                             <p class="text-xs text-blue-500">Total Kasus</p>
+                            <p class="text-xs text-gray-500 mt-1">(Anirat)</p>
                         </div>
                         <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                            <h4 class="text-sm font-medium text-purple-600 mb-1">Judi</h4>
+                            <h4 class="text-sm font-medium text-purple-600 mb-1">Perjudian</h4>
                             <p class="text-2xl font-bold text-purple-700" id="total-judi">{{ number_format($totals['judi']) }}</p>
                             <p class="text-xs text-purple-500">Total Kasus</p>
+                            <p class="text-xs text-gray-500 mt-1">(Judi)</p>
                         </div>
                     </div>
 
@@ -82,11 +88,11 @@
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tahun</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bulan</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Curas</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Curat</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Curanmor</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Anirat</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Judi</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pencurian dengan Kekerasan</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pencurian dengan Pemberatan</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pencurian Kendaraan Bermotor</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pencurian dengan Aniaya</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Perjudian</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                                 </tr>
@@ -128,7 +134,7 @@
                 </button>
             </div>
             
-            <form action="{{ route('dashboard.store') }}" method="POST" id="data-form" data-update-url="{{ route('dashboard.update', '') }}">
+            <form action="{{ route('dashboard.store') }}" method="POST" id="data-form">
                 @csrf
                 <input type="hidden" id="data-id">
                 
@@ -157,27 +163,27 @@
                 </div>
                 
                 <div class="mb-4">
-                    <label for="curas" class="block text-sm font-medium text-gray-700 mb-1">Curas</label>
+                    <label for="curas" class="block text-sm font-medium text-gray-700 mb-1">Pencurian dengan Kekerasan</label>
                     <input type="number" id="curas" name="curas" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                 </div>
                 
                 <div class="mb-4">
-                    <label for="curat" class="block text-sm font-medium text-gray-700 mb-1">Curat</label>
+                    <label for="curat" class="block text-sm font-medium text-gray-700 mb-1">Pencurian dengan Pemberatan</label>
                     <input type="number" id="curat" name="curat" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                 </div>
                 
                 <div class="mb-4">
-                    <label for="curanmor" class="block text-sm font-medium text-gray-700 mb-1">Curanmor</label>
+                    <label for="curanmor" class="block text-sm font-medium text-gray-700 mb-1">Pencurian Kendaraan Bermotor</label>
                     <input type="number" id="curanmor" name="curanmor" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                 </div>
                 
                 <div class="mb-4">
-                    <label for="anirat" class="block text-sm font-medium text-gray-700 mb-1">Anirat</label>
+                    <label for="anirat" class="block text-sm font-medium text-gray-700 mb-1">Pencurian dengan Aniaya</label>
                     <input type="number" id="anirat" name="anirat" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                 </div>
                 
                 <div class="mb-4">
-                    <label for="judi" class="block text-sm font-medium text-gray-700 mb-1">Judi</label>
+                    <label for="judi" class="block text-sm font-medium text-gray-700 mb-1">Perjudian</label>
                     <input type="number" id="judi" name="judi" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                 </div>
                 
@@ -296,15 +302,23 @@
             $('#modal-title').text('Edit Data Kejahatan');
             
             // Ambil data dari server
-            $.get('/dashboard/' + id, function(data) {
-                $('#data-id').val(data.id);
-                $('#tahun').val(data.tahun);
-                $('#bulan').val(data.bulan);
-                $('#curas').val(data.curas);
-                $('#curat').val(data.curat);
-                $('#curanmor').val(data.curanmor);
-                $('#anirat').val(data.anirat);
-                $('#judi').val(data.judi);
+            $.ajax({
+                url: "/dashboard/show/" + id,
+                type: 'GET',
+                success: function(data) {
+                    $('#data-id').val(data.id);
+                    $('#tahun').val(data.tahun);
+                    $('#bulan').val(data.bulan);
+                    $('#curas').val(data.curas);
+                    $('#curat').val(data.curat);
+                    $('#curanmor').val(data.curanmor);
+                    $('#anirat').val(data.anirat);
+                    $('#judi').val(data.judi);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error fetching data:', error);
+                    alert('Gagal mengambil data untuk diedit. Silakan coba lagi.');
+                }
             });
         }
         
@@ -394,14 +408,16 @@
             e.preventDefault();
 
             const formData = $(this).serialize();
-            const baseUrl = $(this).data('update-url');
-            const url = currentAction === 'add' ? "{{ route('dashboard.store') }}" : `${baseUrl}/${currentId}`;
+            const url = currentAction === 'add' ? "{{ route('dashboard.store') }}" : `/dashboard/${currentId}`;
             const method = currentAction === 'add' ? 'POST' : 'PUT';
             
             $.ajax({
                 url: url,
                 type: method,
                 data: formData,
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
                 success: function(response) {
                     closeModal();
                     loadData();
@@ -426,8 +442,8 @@
             $.ajax({
                 url: `/dashboard/${currentId}`,
                 type: 'DELETE',
-                data: {
-                    _token: $('meta[name="csrf-token"]').attr('content')
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
                 success: function(response) {
                     closeDeleteModal();

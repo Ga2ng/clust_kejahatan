@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\DataKejahatan;
+use Illuminate\Support\Facades\Log;
 
 class ClusteringController extends Controller
 {
@@ -821,4 +822,27 @@ class ClusteringController extends Controller
         // Return total change (sum of all absolute differences)
         return round($totalChange, 6);
     }
+
+    public function exportPDF(Request $request)
+    {
+        // Ambil data dari request dan decode JSON
+        $tahun = $request->get('tahun');
+        $data12bulan = json_decode($request->get('data12bulan', '[]'), true);
+        $iterations = json_decode($request->get('iterations', '[]'), true);
+        $final_clusters = json_decode($request->get('final_clusters', '[]'), true);
+        $convergence_info = json_decode($request->get('convergence_info', '[]'), true);
+        $debug_info = json_decode($request->get('debug_info', 'null'), true);
+        
+        // Generate PDF menggunakan DomPDF
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('clustering.export-pdf', compact(
+            'tahun', 'data12bulan', 'iterations', 'final_clusters', 
+            'convergence_info', 'debug_info'
+        ));
+        
+        $filename = "hasil_clustering_kmeans_tahun_{$tahun}_" . date('Y-m-d_H-i-s') . ".pdf";
+        
+        return $pdf->download($filename);
+    }
+
+
 }

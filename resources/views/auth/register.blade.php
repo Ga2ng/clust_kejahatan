@@ -87,7 +87,7 @@
                             <label class="block text-white font-medium mb-2">Role</label>
                             <select id="role" name="role" required class="w-full px-4 py-3 rounded-xl bg-white/20 border border-white/30 text-white focus:outline-none focus:border-white/60 focus:bg-white/30 transition-all duration-300">
                                 <option value="" class="text-gray-900">-- Pilih Role --</option>
-                                <option value="user" class="text-gray-900" {{ old('role') == 'user' ? 'selected' : '' }}>User</option>
+                                {{-- <option value="user" class="text-gray-900" {{ old('role') == 'user' ? 'selected' : '' }}>User</option> --}}
                                 <option value="admin" class="text-gray-900" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
                                 <option value="polisi" class="text-gray-900" {{ old('role') == 'polisi' ? 'selected' : '' }}>Polisi</option>
                             </select>
